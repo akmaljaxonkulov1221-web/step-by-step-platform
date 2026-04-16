@@ -1,0 +1,64 @@
+{
+  "timestamp": "2026-04-16T14:13:16.565830",
+  "audit": {
+    "existing_functions": {
+      "test_system": {
+        "total_tests": 28,
+        "total_questions": 1240,
+        "total_results": 0,
+        "status": "OK"
+      },
+      "results_system": {
+        "has_results": false,
+        "status": "NEEDS_RESULTS"
+      },
+      "certificate_system": {
+        "total_certificates": 0,
+        "status": "OK"
+      },
+      "scoring_system": {
+        "daily_points_function": "OK",
+        "dtm_points_function": "OK",
+        "status": "OK"
+      },
+      "topics_system": {
+        "total_subjects": 5,
+        "total_topics": 0,
+        "status": "OK"
+      },
+      "user_system": {
+        "total_users": 6,
+        "admin_users": 1,
+        "student_users": 5,
+        "status": "OK"
+      },
+      "group_system": {
+        "total_groups": 9,
+        "status": "OK"
+      }
+    },
+    "database_schema": {
+      "topic_model": {
+        "status": "NO_TOPICS_FOUND"
+      },
+      "ai_chat_table": {
+        "exists": false,
+        "status": "NEEDS_CREATION"
+      },
+      "enhanced_certificate": {
+        "needs_upgrade": true,
+        "status": "NEEDS_ENHANCEMENT"
+      }
+    },
+    "routes": {
+      "total_routes": 57,
+      "missing_routes": [],
+      "status": "OK"
+    }
+  },
+  "summary": {
+    "total_categories": 3,
+    "issues_found": 3,
+    "overall_status": "NEEDS_FIXES"
+  }
+}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Savolni Tahrirlash{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-edit"></i> Savolni Tahrirlash</h4>
+                    <small class="text-muted">Test: {{ test.title }}</small>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <form method="POST">
+                        <div class="form-group mb-4">
+                            <label for="text">Savol matni</label>
+                            <textarea class="form-control" id="text" name="text" rows="3" required>{{ question.text }}</textarea>
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            <label>Javob variantlari</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="input-group mb-2">
+                                        <span class="input-group-text">A</span>
+                                        <input type="text" class="form-control" name="option_a" value="{{ question.option_a }}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="input-group mb-2">
+                                        <span class="input-group-text">B</span>
+                                        <input type="text" class="form-control" name="option_b" value="{{ question.option_b }}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="input-group mb-2">
+                                        <span class="input-group-text">C</span>
+                                        <input type="text" class="form-control" name="option_c" value="{{ question.option_c }}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="input-group mb-2">
+                                        <span class="input-group-text">D</span>
+                                        <input type="text" class="form-control" name="option_d" value="{{ question.option_d }}" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            <label for="correct_answer">To'g'ri javob</label>
+                            <select class="form-control" id="correct_answer" name="correct_answer" required>
+                                <option value="">Tanlang...</option>
+                                <option value="A" {% if question.correct_answer == 'A' %}selected{% endif %}>A</option>
+                                <option value="B" {% if question.correct_answer == 'B' %}selected{% endif %}>B</option>
+                                <option value="C" {% if question.correct_answer == 'C' %}selected{% endif %}>C</option>
+                                <option value="D" {% if question.correct_answer == 'D' %}selected{% endif %}>D</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            <label><i class="fas fa-info-circle"></i> Savol ma'lumotlari</label>
+                            <div class="alert alert-info">
+                                <p class="mb-1"><strong>Test:</strong> {{ test.title }}</p>
+                                <p class="mb-1"><strong>Test turi:</strong> 
+                                    {% if test.test_type == 'daily' %}
+                                        Kundalik test
+                                    {% elif test.test_type == 'dtm' %}
+                                        DTM test
+                                    {% else %}
+                                        Komprehensiv test
+                                    {% endif %}
+                                </p>
+                                <p class="mb-0"><strong>Joriy to'g'ri javob:</strong> {{ question.correct_answer }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin_test_questions', test_id=test.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Orqaga
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Saqlash
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

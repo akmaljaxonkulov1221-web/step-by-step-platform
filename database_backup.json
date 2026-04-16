@@ -1,0 +1,105 @@
+{
+  "timestamp": "2026-04-14T23:41:22.424486",
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "first_name": "Admin",
+      "last_name": "User",
+      "is_admin": true,
+      "is_group_leader": false,
+      "group_id": 9,
+      "needs_password_change": false
+    },
+    {
+      "id": 2,
+      "username": "akmal.jaxonkulov.101",
+      "first_name": "Akmal",
+      "last_name": "Jaxonkulov",
+      "is_admin": false,
+      "is_group_leader": false,
+      "group_id": 1,
+      "needs_password_change": false
+    },
+    {
+      "id": 3,
+      "username": "sherbek.muhidinnov.102",
+      "first_name": "Sherbek",
+      "last_name": "Muhidinnov",
+      "is_admin": false,
+      "is_group_leader": false,
+      "group_id": 2,
+      "needs_password_change": false
+    },
+    {
+      "id": 4,
+      "username": "akmal.jaxonkulov.108",
+      "first_name": "Akmal",
+      "last_name": "Jaxonkulov",
+      "is_admin": false,
+      "is_group_leader": false,
+      "group_id": 8,
+      "needs_password_change": false
+    }
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "name": "101",
+      "description": null,
+      "total_score": 0
+    },
+    {
+      "id": 2,
+      "name": "102",
+      "description": null,
+      "total_score": 0
+    },
+    {
+      "id": 3,
+      "name": "103",
+      "description": null,
+      "total_score": 0
+    },
+    {
+      "id": 4,
+      "name": "104",
+      "description": null,
+      "total_score": 0
+    },
+    {
+      "id": 5,
+      "name": "105",
+      "description": null,
+      "total_score": 0
+    },
+    {
+      "id": 6,
+      "name": "106",
+      "description": null,
+      "total_score": 0
+    },
+    {
+      "id": 7,
+      "name": "107",
+      "description": null,
+      "total_score": 0
+    },
+    {
+      "id": 8,
+      "name": "108",
+      "description": null,
+      "total_score": 0
+    },
+    {
+      "id": 9,
+      "name": "Admin",
+      "description": null,
+      "total_score": 0
+    }
+  ],
+  "subjects": [],
+  "tests": [],
+  "test_results": [],
+  "certificates": []
+}

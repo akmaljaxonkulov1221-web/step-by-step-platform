@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+
+{% block title %}Testlar{% endblock %}
+
+{% block page_title %}Testlar{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clipboard-list"></i> Testlar bo'limi
+                    </h5>
+                    <small class="opacity-75">Barcha mavjud testlar, ro'yxatdan o'tish va natijalar</small>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="bg-info text-white rounded p-3 mb-2">
+                                    <h4>{{ available_tests|length }}</h4>
+                                    <small>Mavjud testlar</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="bg-success text-white rounded p-3 mb-2">
+                                    <h4>{{ completed_tests|length }}</h4>
+                                    <small>Tugatilgan testlar</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="bg-warning text-white rounded p-3 mb-2">
+                                    <h4>{{ registered_tests|length }}</h4>
+                                    <small>Ro'yxatdan o'tilgan</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="bg-secondary text-white rounded p-3 mb-2">
+                                    <h4>{{ "%.1f"|format(average_score) }}%</h4>
+                                    <small>O'rtacha ball</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <ul class="nav nav-pills" id="testTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="available-tab" data-bs-toggle="pill" data-bs-target="#available" type="button" role="tab">
+                                <i class="fas fa-list"></i> Barcha testlar ({{ available_tests|length }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="registered-tab" data-bs-toggle="pill" data-bs-target="#registered" type="button" role="tab">
+                                <i class="fas fa-user-check"></i> Ro'yxatdan o'tilgan ({{ registered_tests|length }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="completed-tab" data-bs-toggle="pill" data-bs-target="#completed" type="button" role="tab">
+                                <i class="fas fa-check-circle"></i> Tugatilgan ({{ completed_tests|length }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="ai-tests-tab" data-bs-toggle="pill" data-bs-target="#ai-tests" type="button" role="tab">
+                                <i class="fas fa-robot"></i> AI Testlar ({{ ai_tests|length }})
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="testTabContent">
+        <!-- Available Tests -->
+        <div class="tab-pane fade show active" id="available" role="tabpanel">
+            <div class="row">
+                {% for test in available_tests %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 test-card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span class="badge bg-{{ 'primary' if test.test_type == 'daily' else 'success' if test.test_type == 'practice' else 'danger' if test.test_type == 'dtm' else 'info' }}">
+                                {{ test.test_type|title }} Test
+                            </span>
+                            {% if test.is_active %}
+                                <span class="badge bg-success"><i class="fas fa-circle"></i> Faol</span>
+                            {% else %}
+                                <span class="badge bg-secondary"><i class="fas fa-circle"></i> Nofaol</span>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-title">{{ test.title }}</h6>
+                            <p class="card-text text-muted small">
+                                <i class="fas fa-book"></i> {{ test.subject.name if test.subject else 'Fan yo\'q' }}
+                            </p>
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <small class="text-muted">Savollar</small>
+                                    <div class="fw-bold">{{ test.questions|length }}</div>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted">Vaqt</small>
+                                    <div class="fw-bold">{{ test.duration_minutes }} daqiqa</div>
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted">Sana</small>
+                                    <div class="fw-bold">{{ test.test_date.strftime('%d.%m') }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            {% if test.is_available %}
+                                {% if test.is_registered %}
+                                    <a href="{{ url_for('take_test', test_id=test.id) }}" class="btn btn-success w-100">
+                                        <i class="fas fa-play"></i> Testni boshlash
+                                    </a>
+                                {% else %}
+                                    <form method="POST" action="{{ url_for('register_for_test', test_id=test.id) }}">
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <i class="fas fa-user-plus"></i> Ro'yxatdan o'tish
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% elif test.is_expired %}
+                                <button class="btn btn-secondary w-100" disabled>
+                                    <i class="fas fa-times"></i> Vaqti tugagan
+                                </button>
+                            {% else %}
+                                <button class="btn btn-outline-secondary w-100" disabled>
+                                    <i class="fas fa-clock"></i> Kutilmoqda
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Registered Tests -->
+        <div class="tab-pane fade" id="registered" role="tabpanel">
+            <div class="row">
+                {% for test in registered_tests %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 border-info">
+                        <div class="card-header bg-info text-white">
+                            <i class="fas fa-user-check"></i> Ro'yxatdan o'tilgan
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-title">{{ test.title }}</h6>
+                            <p class="card-text text-muted small">
+                                <i class="fas fa-book"></i> {{ test.subject.name if test.subject else 'Fan yo\'q' }}
+                            </p>
+                            <div class="alert alert-info">
+                                <i class="fas fa-clock"></i>
+                                <strong>Boshlanish vaqti:</strong> {{ test.start_time.strftime('%H:%M') }}<br>
+                                <strong>Tugash vaqti:</strong> {{ test.end_time.strftime('%H:%M') }}<br>
+                                <strong>Davomiyligi:</strong> {{ test.duration_minutes }} daqiqa
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            {% if test.is_available %}
+                                <a href="{{ url_for('take_test', test_id=test.id) }}" class="btn btn-success w-100">
+                                    <i class="fas fa-play"></i> Testni boshlash
+                                </a>
+                            {% elif test.is_expired %}
+                                <button class="btn btn-secondary w-100" disabled>
+                                    <i class="fas fa-times"></i> Vaqti tugagan
+                                </button>
+                            {% else %}
+                                <button class="btn btn-outline-info w-100" disabled>
+                                    <i class="fas fa-clock"></i> Kutilmoqda
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Completed Tests -->
+        <div class="tab-pane fade" id="completed" role="tabpanel">
+            <div class="row">
+                {% for result in completed_tests %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 border-success">
+                        <div class="card-header bg-success text-white">
+                            <i class="fas fa-check-circle"></i> Tugatilgan
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-title">{{ result.test.title }}</h6>
+                            <p class="card-text text-muted small">
+                                <i class="fas fa-book"></i> {{ result.test.subject.name if result.test.subject else 'Fan yo\'q' }}
+                            </p>
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <div class="bg-light rounded p-2">
+                                        <div class="fw-bold text-primary">{{ result.score }}</div>
+                                        <small class="text-muted">To'g'ri javoblar</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="bg-light rounded p-2">
+                                        <div class="fw-bold text-success">{{ "%.1f"|format(result.percentage) }}%</div>
+                                        <small class="text-muted">Foiz</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-2 text-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar"></i> {{ result.taken_at.strftime('%d.%m.%Y %H:%M') }}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn btn-outline-success w-100" onclick="viewTestResult({{ result.id }})">
+                                <i class="fas fa-chart-bar"></i> Natijani ko'rish
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- AI Tests -->
+        <div class="tab-pane fade" id="ai-tests" role="tabpanel">
+            <div class="row">
+                {% for test in ai_tests %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 border-warning">
+                        <div class="card-header bg-warning text-dark">
+                            <i class="fas fa-robot"></i> AI Test
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-title">{{ test.title }}</h6>
+                            <p class="card-text text-muted small">
+                                <i class="fas fa-book"></i> {{ test.subject.name if test.subject else 'Fan yo\'q' }}
+                            </p>
+                            <div class="alert alert-warning">
+                                <i class="fas fa-info-circle"></i>
+                                AI tomonidan yaratilgan test<br>
+                                <strong>Savollar soni:</strong> {{ test.questions|length }}<br>
+                                <strong>Davomiyligi:</strong> {{ test.duration_minutes }} daqiqa
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            {% if test.is_available %}
+                                <a href="{{ url_for('take_test', test_id=test.id) }}" class="btn btn-warning w-100">
+                                    <i class="fas fa-play"></i> Testni boshlash
+                                </a>
+                            {% else %}
+                                <button class="btn btn-outline-warning w-100" disabled>
+                                    <i class="fas fa-clock"></i> Kutilmoqda
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- No Tests Message -->
+    {% if available_tests|length == 0 and registered_tests|length == 0 and completed_tests|length == 0 and ai_tests|length == 0 %}
+    <div class="row">
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-clipboard-list fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">Testlar mavjud emas</h4>
+                <p class="text-muted">Hozircha testlar rejalashtirilmagan. AI Assistant orqali test yarating.</p>
+                <a href="{{ url_for('ai_assistant_enhanced') }}" class="btn btn-primary">
+                    <i class="fas fa-robot"></i> AI Assistant
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Test Result Modal -->
+<div class="modal fade" id="testResultModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Test Natijalari</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="testResultContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.test-card {
+    transition: all 0.3s ease;
+    border: 1px solid #dee2e6;
+}
+
+.test-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.nav-pills .nav-link {
+    border-radius: 0.5rem;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.card-header {
+    font-weight: 600;
+}
+
+.btn {
+    font-weight: 500;
+}
+
+.alert {
+    font-size: 0.875rem;
+}
+
+.bg-light {
+    background-color: #f8f9fa !important;
+}
+
+.text-primary {
+    color: #0d6efd !important;
+}
+
+.text-success {
+    color: #198754 !important;
+}
+</style>
+
+<script>
+function viewTestResult(resultId) {
+    fetch(`/api/test_result/${resultId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const content = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="text-center">
+                                <h2 class="text-primary">${data.result.score}/${data.result.total_questions}</h2>
+                                <p class="text-muted">To'g'ri javoblar</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-center">
+                                <h2 class="text-success">${data.result.percentage}%</h2>
+                                <p class="text-muted">Foiz</p>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Test nomi:</strong> ${data.test_title}</p>
+                            <p><strong>Fan:</strong> ${data.subject_name}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Topshirilgan vaqt:</strong> ${data.taken_at}</p>
+                            <p><strong>Ball:</strong> ${data.points_earned} ball</p>
+                        </div>
+                    </div>
+                    ${data.detailed_results ? `
+                    <hr>
+                    <h6>Savollar bo'yicha natijalar:</h6>
+                    <div class="row">
+                        ${data.detailed_results.map(function(item, index) {
+                            return `
+                                <div class="col-md-6 mb-2">
+                                    <span class="badge bg-${item.correct ? 'success' : 'danger'}">
+                                        ${index + 1}. ${item.correct ? 'To\'g\'ri' : 'Noto\'g\'ri'}
+                                    </span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    ` : ''}
+                `;
+                document.getElementById('testResultContent').innerHTML = content;
+                new bootstrap.Modal(document.getElementById('testResultModal')).show();
+            } else {
+                alert('Xatolik: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Xatolik yuz berdi');
+        });
+}
+
+// Auto-refresh every 30 seconds
+setInterval(() => {
+    location.reload();
+}, 30000);
+</script>
+{% endblock %}

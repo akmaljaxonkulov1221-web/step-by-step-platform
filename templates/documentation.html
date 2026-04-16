@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Step by Step Platform{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+    <h1>{{ title }}</h1>
+    
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3>Quick Navigation</h3>
+            <a href="/admin/dashboard" class="btn">Back to Dashboard</a>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="/user-guide" class="btn" style="padding: 5px 15px; font-size: 14px;">User Guide</a>
+            <a href="/api-docs" class="btn" style="padding: 5px 15px; font-size: 14px;">API Docs</a>
+            <a href="/debug" class="btn" style="padding: 5px 15px; font-size: 14px;">Debug Info</a>
+            <a href="/health" class="btn" style="padding: 5px 15px; font-size: 14px;">Health Check</a>
+        </div>
+    </div>
+    
+    <div class="main-content" style="background: white; padding: 30px; border-radius: 10px;">
+        {{ content|safe }}
+    </div>
+    
+    <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+        <h3>Additional Resources</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+            <div>
+                <h4>Step by Step Documentation</h4>
+                <ul style="line-height: 1.8;">
+                    <li><a href="/step-by-step">Development Process</a></li>
+                    <li><a href="/deployment-guide">Deployment Guide</a></li>
+                    <li><a href="/troubleshooting">Troubleshooting</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Technical Documentation</h4>
+                <ul style="line-height: 1.8;">
+                    <li><a href="/database-schema">Database Schema</a></li>
+                    <li><a href="/api-endpoints">API Endpoints</a></li>
+                    <li><a href="/configuration">Configuration</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Support</h4>
+                <ul style="line-height: 1.8;">
+                    <li><a href="/faq">FAQ</a></li>
+                    <li><a href="/contact">Contact Support</a></li>
+                    <li><a href="/feedback">Send Feedback</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.main-content h1 { color: #667eea; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
+.main-content h2 { color: #333; margin-top: 30px; margin-bottom: 15px; }
+.main-content h3 { color: #555; margin-top: 25px; margin-bottom: 10px; }
+.main-content h4 { color: #666; margin-top: 20px; margin-bottom: 8px; }
+.main-content p { margin-bottom: 15px; line-height: 1.6; }
+.main-content ul, .main-content ol { margin-bottom: 15px; padding-left: 20px; }
+.main-content li { margin-bottom: 5px; }
+.main-content code { background: #f8f9fa; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; }
+.main-content pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; }
+.main-content blockquote { border-left: 4px solid #667eea; padding-left: 15px; margin: 15px 0; color: #666; }
+.main-content table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+.main-content th, .main-content td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+.main-content th { background: #f8f9fa; font-weight: bold; }
+.main-content a { color: #667eea; text-decoration: none; }
+.main-content a:hover { text-decoration: underline; }
+</style>
+{% endblock %}

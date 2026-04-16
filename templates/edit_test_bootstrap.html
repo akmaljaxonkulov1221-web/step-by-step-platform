@@ -1,0 +1,123 @@
+{% extends "base_bootstrap.html" %}
+
+{% block title %}Testni Tahrirlash{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-edit"></i> Testni Tahrirlash</h4>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <form method="POST">
+                        <div class="form-group mb-3">
+                            <label for="title">Test nomi</label>
+                            <input type="text" class="form-control" id="title" name="title" 
+                                   value="{{ test.title }}" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="subject_id">Fan</label>
+                                    <select class="form-control" id="subject_id" name="subject_id">
+                                        <option value="">Fan tanlang</option>
+                                        {% for subject in subjects %}
+                                            <option value="{{ subject.id }}" {% if test.subject_id == subject.id %}selected{% endif %}>
+                                                {{ subject.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="test_type">Test turi</label>
+                                    <select class="form-control" id="test_type" name="test_type" required>
+                                        <option value="daily" {% if test.test_type == 'daily' %}selected{% endif %}>Kundalik test</option>
+                                        <option value="dtm" {% if test.test_type == 'dtm' %}selected{% endif %}>DTM test</option>
+                                        <option value="comprehensive" {% if test.test_type == 'comprehensive' %}selected{% endif %}>Komprehensiv test</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="test_date">Test sanasi</label>
+                                    <input type="date" class="form-control" id="test_date" name="test_date" 
+                                           value="{{ test.test_date.strftime('%Y-%m-%d') }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="start_time">Boshlanish vaqti</label>
+                                    <input type="time" class="form-control" id="start_time" name="start_time" 
+                                           value="{{ test.start_time.strftime('%H:%M') if test.start_time else '' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="end_time">Tugash vaqti</label>
+                                    <input type="time" class="form-control" id="end_time" name="end_time" 
+                                           value="{{ test.end_time.strftime('%H:%M') if test.end_time else '' }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="duration_minutes">Davomiyligi (daqiqa)</label>
+                            <input type="number" class="form-control" id="duration_minutes" name="duration_minutes" 
+                                   value="{{ test.duration_minutes }}" min="1" required>
+                            <small class="form-text text-muted">Kundalik testlar uchun 60 daqiqa, DTM testlar uchun 120 daqiqa</small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label><i class="fas fa-info-circle"></i> Test ma'lumotlari</label>
+                            <div class="alert alert-info">
+                                <p class="mb-1"><strong>Savollar soni:</strong> {{ test.questions|length }}</p>
+                                <p class="mb-1"><strong>Test turi:</strong> 
+                                    {% if test.test_type == 'daily' %}
+                                        Kundalik test
+                                    {% elif test.test_type == 'dtm' %}
+                                        DTM test
+                                    {% else %}
+                                        Komprehensiv test
+                                    {% endif %}
+                                </p>
+                                <p class="mb-1"><strong>Test sanasi:</strong> {{ test.test_date.strftime('%d.%m.%Y') }}</p>
+                                <p class="mb-0"><strong>Vaqt oralig'i:</strong> 
+                                    {{ test.start_time.strftime('%H:%M') }} - {{ test.end_time.strftime('%H:%M') }}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin_tests') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Orqaga
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Saqlash
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

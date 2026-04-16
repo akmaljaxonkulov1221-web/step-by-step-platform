@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Test jadvali{% endblock %}
+
+{% block page_title %}Test jadvali{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-alt"></i> 7 kunlik test jadvali
+                </h5>
+                <small class="text-muted">Aniq sanalar va vaqtlar bilan</small>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Ma'lumot:</strong> Har kuni bitta fan bo'yicha test bo'ladi. Kundalik testlar soat 22:00 gacha topshirilishi mumkin.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    {% if schedule_data %}
+        {% for schedule_item in schedule_data %}
+        <div class="col-12 mb-3">
+            <div class="card {% if schedule_item.is_today %}border-primary{% endif %} {% if schedule_item.is_expired %}opacity-50{% endif %}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">
+                            <i class="fas fa-calendar-day"></i> {{ schedule_item.date }}
+                            <small class="text-muted">({{ schedule_item.day_name }})</small>
+                        </h6>
+                    </div>
+                    <div>
+                        {% if schedule_item.is_today %}
+                            <span class="badge bg-primary">Bugun</span>
+                        {% endif %}
+                        {% if schedule_item.is_expired %}
+                            <span class="badge bg-danger">Tugagan</span>
+                        {% endif %}
+                        {% if schedule_item.test_type == 'dtm' %}
+                            <span class="badge bg-danger">DTM test</span>
+                        {% elif schedule_item.test_type == 'daily' %}
+                            <span class="badge bg-warning">Kundalik test</span>
+                        {% elif schedule_item.test_type == 'practice' %}
+                            <span class="badge bg-success">Mashq testi</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <strong>
+                                <i class="fas fa-clock"></i> {{ schedule_item.time }}
+                            </strong>
+                            <br>
+                            <small class="text-muted">{{ schedule_item.duration }} daqiqa</small>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-1">{{ schedule_item.subject }}</h6>
+                            <p class="mb-0 text-muted">{{ schedule_item.title }}</p>
+                        </div>
+                        <div class="col-md-3 text-end">
+                            {% if not schedule_item.is_expired %}
+                                {% if schedule_item.is_today %}
+                                    <a href="{{ url_for('tests') }}" class="btn btn-success btn-sm">
+                                        <i class="fas fa-play"></i> Testni boshlash
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">
+                                        <i class="fas fa-hourglass-half"></i> Kutilmoqda
+                                    </span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">
+                                    <i class="fas fa-check"></i> Yakunlangan
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">Test jadvali mavjud emas</h4>
+                <p class="text-muted">Kelgusi 7 kun ichida testlar rejalashtirilmagan</p>
+                {% if current_user.is_admin %}
+                    <a href="{{ url_for('admin_tests') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Test qo'shish
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+{% if current_user.is_admin %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-cog"></i> Admin imkoniyatlari
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <a href="{{ url_for('admin_tests') }}" class="btn btn-outline-primary w-100 mb-2">
+                            <i class="fas fa-edit"></i> Testlarni boshqarish
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <button onclick="updateSchedule()" class="btn btn-outline-success w-100 mb-2">
+                            <i class="fas fa-sync"></i> Jadvalni yangilash
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('admin_schedule') }}" class="btn btn-outline-info w-100 mb-2">
+                            <i class="fas fa-calendar-plus"></i> Yangi jadval
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+function updateSchedule() {
+    if (confirm('Jadvalni yangilash barcha mavjud testlarni o\'chirib qo\'yadi. Davom etasizmi?')) {
+        fetch('/admin/update_schedule', {method: 'POST'})
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Jadval muvaffaqiyatli yangilandi!');
+                    location.reload();
+                } else {
+                    alert('Xatolik yuz berdi: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Xatolik yuz berdi');
+            });
+    }
+}
+</script>
+
+<style>
+.schedule-item {
+    border-bottom: 1px solid #eee;
+    padding: 10px 0;
+}
+
+.schedule-item:last-child {
+    border-bottom: none;
+}
+
+.card.border-primary {
+    border-width: 2px !important;
+    box-shadow: 0 0 10px rgba(0,123,255,0.25);
+}
+
+.opacity-50 {
+    opacity: 0.5;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+</style>
+{% endblock %}

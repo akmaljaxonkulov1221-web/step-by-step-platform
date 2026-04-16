@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Database Restore{% endblock %}
+
+{% block page_title %}Database Restore{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-database"></i> Database Restore
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger">
+                        {{ error }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Diqqat!</strong> Database restore amalga oshirilganda, joriy ma'lumotlar o'chiriladi va backup ma'lumotlari qayta tiklanadi.
+                    </div>
+                    
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="backup_file" class="form-label">Backup faylini tanlang</label>
+                            <select class="form-select" id="backup_file" name="backup_file" required>
+                                <option value="">Backup faylini tanlang...</option>
+                                {% for file in backup_files %}
+                                <option value="{{ file }}">{{ file }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning" onclick="return confirm('Rostdan ham database ni restore qilmoqchimisiz? Barcha joriy ma'lumotlar o'chiriladi!')">
+                                <i class="fas fa-database"></i> Database Restore
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-4">
+                        <h6>Qo'shimcha imkoniyatlar:</h6>
+                        <div class="list-group">
+                            <a href="{{ url_for('admin_backup') }}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-download"></i> Yangi backup yaratish
+                            </a>
+                            <a href="{{ url_for('admin_export_data') }}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-file-export"></i> Ma'lumotlarni export qilish
+                            </a>
+                            <a href="{{ url_for('admin_dashboard') }}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-arrow-left"></i> Admin panelga qaytish
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

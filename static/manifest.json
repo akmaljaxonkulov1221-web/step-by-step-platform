@@ -1,0 +1,93 @@
+{
+  "name": "Step by Step Education Platform",
+  "short_name": "StepByStep",
+  "description": "Professional education platform with advanced features and Excel-level design",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0ea5e9",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "uz",
+  "dir": "ltr",
+  "categories": ["education", "productivity", "business"],
+  "icons": [
+    {
+      "src": "/static/images/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/images/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/images/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/static/images/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Desktop dashboard view"
+    },
+    {
+      "src": "/static/images/screenshot-mobile.png",
+      "sizes": "375x667",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile dashboard view"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View main dashboard",
+      "url": "/admin/dashboard",
+      "icons": [
+        {
+          "src": "/static/images/dashboard-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "short_name": "Users",
+      "description": "Manage users",
+      "url": "/admin/users",
+      "icons": [
+        {
+          "src": "/static/images/users-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Tests",
+      "short_name": "Tests",
+      "description": "Take tests",
+      "url": "/tests",
+      "icons": [
+        {
+          "src": "/static/images/tests-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}

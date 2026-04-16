@@ -1,0 +1,34 @@
+services:
+  # Web Service
+  - type: web
+    name: education-platform
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python restore_full_previous_state.py
+    startCommand: gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 app:app
+    autoDeploy: true
+    
+    # Environment variables
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.9.0
+    
+    # Health check
+    healthCheckPath: /health
+    
+    # Disk space for uploads and database
+    disk:
+      name: education-platform-disk
+      mountPath: /app
+      sizeGB: 10
+
+# Addons for database
+databases:
+  - name: education-platform-db
+    databaseName: education_platform
+    user: education_platform_user
+    plan: free

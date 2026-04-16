@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - Step by Step Platform{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <h1>My Profile</h1>
+    <p style="color: #666; margin-bottom: 30px;">Manage your personal information and view your progress.</p>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+        <div class="form">
+            <h3>Personal Information</h3>
+            <div class="form-group">
+                <label>Username:</label>
+                <p style="padding: 10px; background: #f8f9fa; border-radius: 5px;">{{ user.username }}</p>
+            </div>
+            <div class="form-group">
+                <label>Full Name:</label>
+                <p style="padding: 10px; background: #f8f9fa; border-radius: 5px;">{{ user.first_name }} {{ user.last_name }}</p>
+            </div>
+            <div class="form-group">
+                <label>Role:</label>
+                <p style="padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                    {% if user.is_admin %}
+                        <span style="color: #e53e3e;">Admin</span>
+                    {% elif user.is_group_leader %}
+                        <span style="color: #38a169;">Group Leader</span>
+                    {% else %}
+                        <span style="color: #667eea;">Student</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="form-group">
+                <label>Group:</label>
+                <p style="padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                    {{ user.group.name if user.group else 'Not Assigned' }}
+                </p>
+            </div>
+        </div>
+        
+        <div class="form">
+            <h3>Account Settings</h3>
+            <form method="post" action="/change_password">
+                <div class="form-group">
+                    <label for="current_password">Current Password:</label>
+                    <input type="password" id="current_password" name="current_password" placeholder="Enter current password">
+                </div>
+                <div class="form-group">
+                    <label for="new_password">New Password:</label>
+                    <input type="password" id="new_password" name="new_password" placeholder="Enter new password">
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Confirm New Password:</label>
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm new password">
+                </div>
+                <button type="submit" class="btn">Change Password</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="stats">
+        <div class="stat-card">
+            <h3>{{ stats.total_tests }}</h3>
+            <p>Total Tests</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ "%.1f"|format(stats.avg_score) }}%</h3>
+            <p>Average Score</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ stats.best_score }}%</h3>
+            <p>Best Score</p>
+        </div>
+        <div class="stat-card">
+            <h3>{{ stats.total_points }}</h3>
+            <p>Total Points</p>
+        </div>
+    </div>
+    
+    <h2>Test History</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Test Name</th>
+                <th>Subject</th>
+                <th>Score</th>
+                <th>Points</th>
+                <th>Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in test_history %}
+            <tr>
+                <td>{{ result.test.name }}</td>
+                <td>{{ result.test.subject.name }}</td>
+                <td>
+                    <span style="color: {% if result.percentage >= 90 %}#38a169{% elif result.percentage >= 70 %}#667eea{% else %}#e53e3e{% endif %}; font-weight: bold;">
+                        {{ result.percentage }}%
+                    </span>
+                </td>
+                <td>{{ result.points_earned }}</td>
+                <td>{{ result.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    {% if result.percentage >= 70 %}
+                        <span style="color: #38a169;">Passed</span>
+                    {% else %}
+                        <span style="color: #e53e3e;">Failed</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% if not test_history %}
+    <div style="text-align: center; padding: 40px; color: #666;">
+        <p>No test history yet. <a href="/available_tests">Take your first test!</a></p>
+    </div>
+    {% endif %}
+    
+    <h2>Achievements</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+        {% if stats.total_tests >= 10 %}
+        <div class="stat-card">
+            <h3>Test Taker</h3>
+            <p>Completed 10+ tests</p>
+        </div>
+        {% endif %}
+        
+        {% if stats.best_score >= 95 %}
+        <div class="stat-card">
+            <h3>Perfect Score</h3>
+            <p>Achieved 95%+ score</p>
+        </div>
+        {% endif %}
+        
+        {% if stats.avg_score >= 85 %}
+        <div class="stat-card">
+            <h3>Consistent</h3>
+            <p>Average 85%+ score</p>
+        </div>
+        {% endif %}
+        
+        {% if test_history|length >= 5 %}
+        <div class="stat-card">
+            <h3>Regular</h3>
+            <p>5+ tests completed</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if not (stats.total_tests >= 10 or stats.best_score >= 95 or stats.avg_score >= 85 or test_history|length >= 5) %}
+    <div style="text-align: center; padding: 40px; color: #666;">
+        <p>No achievements yet. Keep taking tests to unlock achievements!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

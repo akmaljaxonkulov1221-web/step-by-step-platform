@@ -1,0 +1,784 @@
+{% extends "base.html" %}
+
+{% block title %}Fanlar{% endblock %}
+
+{% block page_title %}Fanlar{% endblock %}
+
+{% block content %}
+<div class="row">
+    {% for subject in subjects %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box bg-primary bg-gradient text-white rounded-circle p-3 me-3">
+                            <i class="fas fa-book fa-lg"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">{{ subject.name }}</h5>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            {% if session.get('is_admin', False) %}
+                            <li>
+                                <a class="dropdown-item" href="#" onclick="editSubject({{ subject.id }})">
+                                    <i class="fas fa-edit"></i> Tahrirlash
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#" onclick="deleteSubject({{ subject.id }})">
+                                    <i class="fas fa-trash"></i> O'chirish
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% endif %}
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('subject_detail', subject_id=subject.id) }}">
+                                    <i class="fas fa-list"></i> Mavzularni ko'rish
+                                </a>
+                            </li>
+                            {% if session.get('is_admin', False) %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="#" onclick="showTopicManagement({{ subject.id }})">
+                                    <i class="fas fa-tasks"></i> Mavzularni boshqarish
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+                <p class="card-text">{{ subject.description or 'Tafsilotlar mavjud emas' }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{{ url_for('subject_detail', subject_id=subject.id) }}" class="btn btn-primary">
+                        <i class="fas fa-arrow-right"></i> Mavzular
+                    </a>
+                    <div class="text-end">
+                        {% if session.get('is_admin', False) %}
+                        <div class="btn-group mb-2" role="group">
+                            <button class="btn btn-sm btn-outline-primary" onclick="editSubject({{ subject.id }})" title="Tahrirlash">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteSubject({{ subject.id }})" title="O'chirish">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        {% endif %}
+                        <small class="text-muted d-block">
+                            <i class="fas fa-list"></i> {{ subject.topics|length }} mavzu
+                        </small>
+                        {% if subject.topics|length > 0 %}
+                        <small class="text-muted d-block">
+                            <i class="fas fa-file-pdf"></i> {{ subject.topics|selectattr('pdf_file')|list|length }} PDF
+                        </small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    {% if not subjects %}
+    <div class="col-12">
+        <div class="text-center py-5">
+            <i class="fas fa-book fa-4x text-muted mb-3"></i>
+            <h4 class="text-muted">Hali fanlar mavjud emas</h4>
+            <p class="text-muted">Admin fanlarni qo'shishi kerak</p>
+            {% if session.get('is_admin', False) %}
+            <button class="btn btn-primary" onclick="showAddSubjectModal()">
+                <i class="fas fa-plus"></i> Yangi fan qo'shish
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+<!-- Admin Subjects Management Section -->
+{% if session.get('is_admin', False) and subjects %}
+<div class="col-12 mb-4">
+    <div class="card bg-success text-white">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0">
+                        <i class="fas fa-book"></i> Fanlar boshqaruvi
+                    </h5>
+                    <small class="opacity-75">Barcha fanlarni boshqarish va mavzularni tahrirlash</small>
+                </div>
+                <div>
+                    <select class="form-select form-select-sm" id="subjectsManagementSelector" style="width: 300px;">
+                        <option value="">Fan tanlang...</option>
+                        {% for subject in subjects %}
+                        <option value="{{ subject.id }}">{{ subject.name }} ({{ subject.topics|length }} mavzu)</option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-light btn-sm ms-2" onclick="openSubjectsManagement()">
+                        <i class="fas fa-cog"></i> Boshqarish
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Admin Topic Management Section -->
+{% if session.get('is_admin', False) and subjects %}
+<div class="col-12 mb-4">
+    <div class="card bg-primary text-white">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0">
+                        <i class="fas fa-tasks"></i> Mavzularni boshqarish
+                    </h5>
+                    <small class="opacity-75">Barcha fanlardagi mavzularni boshqarish</small>
+                </div>
+                <div>
+                    <select class="form-select form-select-sm" id="subjectSelector" style="width: 300px;">
+                        <option value="">Fan tanlang...</option>
+                        {% for subject in subjects %}
+                        <option value="{{ subject.id }}">{{ subject.name }} ({{ subject.topics|length }} mavzu)</option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-light btn-sm ms-2" onclick="openSelectedSubjectTopics()">
+                        <i class="fas fa-cog"></i> Boshqarish
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+</div>
+
+<!-- Add Subject Modal -->
+<div class="modal fade" id="addSubjectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Yangi fan qo'shish</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addSubjectForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="subjectName" class="form-label">Fan nomi</label>
+                        <input type="text" class="form-control" id="subjectName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="subjectDescription" class="form-label">Fan tavsifi</label>
+                        <textarea class="form-control" id="subjectDescription" name="description" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Saqlash
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Subject Modal -->
+<div class="modal fade" id="editSubjectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Fanni tahrirlash</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editSubjectForm">
+                <div class="modal-body">
+                    <input type="hidden" id="editSubjectId" name="subject_id">
+                    <div class="mb-3">
+                        <label for="editSubjectName" class="form-label">Fan nomi</label>
+                        <input type="text" class="form-control" id="editSubjectName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSubjectDescription" class="form-label">Fan tavsifi</label>
+                        <textarea class="form-control" id="editSubjectDescription" name="description" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Saqlash
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Topic Management Modal -->
+<div class="modal fade" id="topicManagementModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-tasks"></i> 
+                    <span id="topicManagementTitle">Mavzularni boshqarish</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <button class="btn btn-primary" onclick="showAddTopicInManagement()">
+                            <i class="fas fa-plus"></i> Yangi mavzu qo'shish
+                        </button>
+                        <button class="btn btn-secondary" onclick="refreshTopics()">
+                            <i class="fas fa-sync"></i> Yangilash
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Mavzu nomi</th>
+                                <th>Mazmuni</th>
+                                <th>Video</th>
+                                <th>PDF</th>
+                                <th>Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topicsTableBody">
+                            <!-- Topics will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="noTopicsMessage" class="text-center py-5" style="display: none;">
+                    <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Hali mavzular mavjud emas</h5>
+                    <p class="text-muted">Yangi mavzu qo'shish tugmasini bosing</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Topic in Management Modal -->
+<div class="modal fade" id="addTopicInManagementModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Yangi mavzu qo'shish</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addTopicInManagementForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" id="managementSubjectId" name="subject_id">
+                    <div class="mb-3">
+                        <label for="managementTopicTitle" class="form-label">Mavzu nomi</label>
+                        <input type="text" class="form-control" id="managementTopicTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="managementTopicContent" class="form-label">Mavzu mazmuni</label>
+                        <textarea class="form-control" id="managementTopicContent" name="content" rows="6" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="managementTopicVideoUrl" class="form-label">Video URL (ixtiyoriy)</label>
+                        <input type="url" class="form-control" id="managementTopicVideoUrl" name="video_url" placeholder="https://youtube.com/watch?v=...">
+                    </div>
+                    <div class="mb-3">
+                        <label for="managementTopicPdfFile" class="form-label">PDF fayl (ixtiyoriy)</label>
+                        <input type="file" class="form-control" id="managementTopicPdfFile" name="pdf_file" accept=".pdf">
+                        <small class="text-muted">Faqat PDF fayllar qabul qilinadi</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Saqlash
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Topic in Management Modal -->
+<div class="modal fade" id="editTopicInManagementModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Mavzuni tahrirlash</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editTopicInManagementForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" id="managementEditTopicId" name="topic_id">
+                    <div class="mb-3">
+                        <label for="managementEditTopicTitle" class="form-label">Mavzu nomi</label>
+                        <input type="text" class="form-control" id="managementEditTopicTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="managementEditTopicContent" class="form-label">Mavzu mazmuni</label>
+                        <textarea class="form-control" id="managementEditTopicContent" name="content" rows="6" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="managementEditTopicVideoUrl" class="form-label">Video URL (ixtiyoriy)</label>
+                        <input type="url" class="form-control" id="managementEditTopicVideoUrl" name="video_url" placeholder="https://youtube.com/watch?v=...">
+                    </div>
+                    <div class="mb-3">
+                        <label for="managementEditTopicPdfFile" class="form-label">PDF fayl (ixtiyoriy)</label>
+                        <input type="file" class="form-control" id="managementEditTopicPdfFile" name="pdf_file" accept=".pdf">
+                        <small class="text-muted">Faqat PDF fayllar qabul qilinadi. Yangi fayl yuklasangiz, eskisi o'chiriladi.</small>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="managementRemovePdfFile" name="remove_pdf_file">
+                            <label class="form-check-label" for="managementRemovePdfFile">
+                                Joriy PDF faylni o'chirish
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Saqlash
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.icon-box {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dropdown-toggle::after {
+    display: none;
+}
+
+.btn-sm {
+    font-size: 0.875rem;
+}
+
+.modal-dialog {
+    max-width: 500px;
+}
+</style>
+
+<script>
+// Show Add Subject Modal
+function showAddSubjectModal() {
+    var modal = new bootstrap.Modal(document.getElementById('addSubjectModal'));
+    modal.show();
+}
+
+// Edit Subject
+function editSubject(subjectId) {
+    // Fetch subject data
+    fetch('/api/subject/' + subjectId)
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.success) {
+                var subject = data.subject;
+                document.getElementById('editSubjectId').value = subject.id;
+                document.getElementById('editSubjectName').value = subject.name;
+                document.getElementById('editSubjectDescription').value = subject.description || '';
+                
+                var modal = new bootstrap.Modal(document.getElementById('editSubjectModal'));
+                modal.show();
+            } else {
+                showNotification('Xatolik: ' + data.error, 'error');
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            showNotification('Xatolik yuz berdi', 'error');
+        });
+}
+
+// Delete Subject
+function deleteSubject(subjectId) {
+    if (confirm('Ushbu fanni o\'chirishni istaysizmi? Bu amalni ortga qaytarib bo\'lmaydi. Fanga tegishli barcha mavzular ham o\'chiriladi.')) {
+        fetch('/api/subject/' + subjectId, {
+            method: 'DELETE'
+        })
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.success) {
+                showNotification('Fan muvaffaqiyatli o\'chirildi', 'success');
+                setTimeout(function() {
+                    location.reload();
+                }, 1500);
+            } else {
+                showNotification('Xatolik: ' + data.error, 'error');
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            showNotification('Xatolik yuz berdi', 'error');
+        });
+    }
+}
+
+// Add Subject Form
+document.getElementById('addSubjectForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    var formData = new FormData(this);
+    var submitBtn = this.querySelector('button[type="submit"]');
+    
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saqlanmoqda...';
+    submitBtn.disabled = true;
+    
+    fetch('/api/add_subject', {
+        method: 'POST',
+        body: formData
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.success) {
+            showNotification('Fan muvaffaqiyatli qo\'shildi', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('addSubjectModal')).hide();
+            this.reset();
+            setTimeout(function() {
+                location.reload();
+            }, 1500);
+        } else {
+            showNotification('Xatolik: ' + data.error, 'error');
+        }
+    })
+    .catch(function(error) {
+        console.error('Error:', error);
+        showNotification('Xatolik yuz berdi', 'error');
+    })
+    .finally(function() {
+        submitBtn.innerHTML = '<i class="fas fa-save"></i> Saqlash';
+        submitBtn.disabled = false;
+    });
+});
+
+// Edit Subject Form
+document.getElementById('editSubjectForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    var formData = new FormData(this);
+    var submitBtn = this.querySelector('button[type="submit"]');
+    
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saqlanmoqda...';
+    submitBtn.disabled = true;
+    
+    fetch('/api/edit_subject', {
+        method: 'POST',
+        body: formData
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.success) {
+            showNotification('Fan muvaffaqiyatli tahrirlandi', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('editSubjectModal')).hide();
+            setTimeout(function() {
+                location.reload();
+            }, 1500);
+        } else {
+            showNotification('Xatolik: ' + data.error, 'error');
+        }
+    })
+    .catch(function(error) {
+        console.error('Error:', error);
+        showNotification('Xatolik yuz berdi', 'error');
+    })
+    .finally(function() {
+        submitBtn.innerHTML = '<i class="fas fa-save"></i> Saqlash';
+        submitBtn.disabled = false;
+    });
+});
+
+// Show Notification
+function showNotification(message, type) {
+    var alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-' + type + ' alert-dismissible fade show position-fixed';
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = message + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(function() {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 5000);
+}
+
+// Open Selected Subject Topics
+function openSelectedSubjectTopics() {
+    var subjectSelector = document.getElementById('subjectSelector');
+    var selectedSubjectId = subjectSelector.value;
+    
+    if (!selectedSubjectId) {
+        showNotification('Iltimos, avval fan tanlang', 'warning');
+        return;
+    }
+    
+    // Open topic management for selected subject
+    showTopicManagement(parseInt(selectedSubjectId));
+}
+
+// Open Subjects Management
+function openSubjectsManagement() {
+    var subjectsSelector = document.getElementById('subjectsManagementSelector');
+    var selectedSubjectId = subjectsSelector.value;
+    
+    if (!selectedSubjectId) {
+        showNotification('Iltimos, avval fan tanlang', 'warning');
+        return;
+    }
+    
+    // Redirect to subject detail page with management mode
+    window.location.href = '/subject/' + selectedSubjectId + '?management=true';
+}
+
+// Topic Management Functions
+var currentSubjectId = null;
+
+function showTopicManagement(subjectId) {
+    currentSubjectId = subjectId;
+    
+    // Fetch subject info
+    fetch('/api/subject/' + subjectId)
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.success) {
+                document.getElementById('topicManagementTitle').textContent = 
+                    data.subject.name + ' - Mavzularni boshqarish';
+                document.getElementById('managementSubjectId').value = subjectId;
+                
+                // Load topics
+                loadTopics(subjectId);
+                
+                // Show modal
+                var modal = new bootstrap.Modal(document.getElementById('topicManagementModal'));
+                modal.show();
+            } else {
+                showNotification('Xatolik: ' + data.error, 'error');
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            showNotification('Xatolik yuz berdi', 'error');
+        });
+}
+
+function loadTopics(subjectId) {
+    fetch('/api/topics/' + subjectId)
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.success) {
+                renderTopicsTable(data.topics);
+            } else {
+                showNotification('Xatolik: ' + data.error, 'error');
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            showNotification('Xatolik yuz berdi', 'error');
+        });
+}
+
+function renderTopicsTable(topics) {
+    var tbody = document.getElementById('topicsTableBody');
+    var noTopicsMessage = document.getElementById('noTopicsMessage');
+    
+    if (topics.length === 0) {
+        tbody.innerHTML = '';
+        noTopicsMessage.style.display = 'block';
+        return;
+    }
+    
+    noTopicsMessage.style.display = 'none';
+    
+    tbody.innerHTML = topics.map(function(topic) {
+        return '<tr>' +
+            '<td><strong>' + topic.title + '</strong></td>' +
+            '<td>' + (topic.content.length > 100 ? topic.content.substring(0, 100) + '...' : topic.content) + '</td>' +
+            '<td>' + (topic.video_url ? '<span class="badge bg-info"><i class="fas fa-video"></i> Bor</span>' : '<span class="badge bg-secondary">Yo\'q</span>') + '</td>' +
+            '<td>' + (topic.pdf_file ? '<span class="badge bg-success"><i class="fas fa-file-pdf"></i> Bor</span>' : '<span class="badge bg-secondary">Yo\'q</span>') + '</td>' +
+            '<td>' +
+                '<button class="btn btn-sm btn-outline-primary me-1" onclick="editTopicInManagement(' + topic.id + ')">' +
+                    '<i class="fas fa-edit"></i> Tahrirlash' +
+                '</button>' +
+                '<button class="btn btn-sm btn-outline-danger" onclick="deleteTopicInManagement(' + topic.id + ')">' +
+                    '<i class="fas fa-trash"></i> O\'chirish' +
+                '</button>' +
+            '</td>' +
+        '</tr>';
+    }).join('');
+}
+
+function refreshTopics() {
+    if (currentSubjectId) {
+        loadTopics(currentSubjectId);
+    }
+}
+
+function showAddTopicInManagement() {
+    var modal = new bootstrap.Modal(document.getElementById('addTopicInManagementModal'));
+    modal.show();
+}
+
+function editTopicInManagement(topicId) {
+    fetch('/api/topic/' + topicId)
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.success) {
+                var topic = data.topic;
+                document.getElementById('managementEditTopicId').value = topic.id;
+                document.getElementById('managementEditTopicTitle').value = topic.title;
+                document.getElementById('managementEditTopicContent').value = topic.content;
+                document.getElementById('managementEditTopicVideoUrl').value = topic.video_url || '';
+                
+                var modal = new bootstrap.Modal(document.getElementById('editTopicInManagementModal'));
+                modal.show();
+            } else {
+                showNotification('Xatolik: ' + data.error, 'error');
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            showNotification('Xatolik yuz berdi', 'error');
+        });
+}
+
+function deleteTopicInManagement(topicId) {
+    if (confirm('Ushbu mavzuni o\'chirishni istaysizmi? Bu amalni ortga qaytarib bo\'lmaydi.')) {
+        fetch('/api/topic/' + topicId, {
+            method: 'DELETE'
+        })
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.success) {
+                showNotification('Mavzu muvaffaqiyatli o\'chirildi', 'success');
+                refreshTopics();
+            } else {
+                showNotification('Xatolik: ' + data.error, 'error');
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            showNotification('Xatolik yuz berdi', 'error');
+        });
+    }
+}
+
+// Add Topic in Management Form
+document.getElementById('addTopicInManagementForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    var formData = new FormData(this);
+    var submitBtn = this.querySelector('button[type="submit"]');
+    
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saqlanmoqda...';
+    submitBtn.disabled = true;
+    
+    fetch('/api/add_topic', {
+        method: 'POST',
+        body: formData
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.success) {
+            showNotification('Mavzu muvaffaqiyatli qo\'shildi', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('addTopicInManagementModal')).hide();
+            this.reset();
+            refreshTopics();
+        } else {
+            showNotification('Xatolik: ' + data.error, 'error');
+        }
+    })
+    .catch(function(error) {
+        console.error('Error:', error);
+        showNotification('Xatolik yuz berdi', 'error');
+    })
+    .finally(function() {
+        submitBtn.innerHTML = '<i class="fas fa-save"></i> Saqlash';
+        submitBtn.disabled = false;
+    });
+});
+
+// Edit Topic in Management Form
+document.getElementById('editTopicInManagementForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    var formData = new FormData(this);
+    var submitBtn = this.querySelector('button[type="submit"]');
+    
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saqlanmoqda...';
+    submitBtn.disabled = true;
+    
+    fetch('/api/edit_topic', {
+        method: 'POST',
+        body: formData
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.success) {
+            showNotification('Mavzu muvaffaqiyatli tahrirlandi', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('editTopicInManagementModal')).hide();
+            refreshTopics();
+        } else {
+            showNotification('Xatolik: ' + data.error, 'error');
+        }
+    })
+    .catch(function(error) {
+        console.error('Error:', error);
+        showNotification('Xatolik yuz berdi', 'error');
+    })
+    .finally(function() {
+        submitBtn.innerHTML = '<i class="fas fa-save"></i> Saqlash';
+        submitBtn.disabled = false;
+    });
+});
+</script>
+{% endblock %}

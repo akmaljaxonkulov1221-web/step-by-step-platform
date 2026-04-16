@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+
+{% block title %}AI Assistant{% endblock %}
+
+{% block page_title %}AI Assistant{% endblock %}
+
+{% block content %}
+<div class="container-fluid h-100">
+    <div class="row h-100">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 bg-light border-end">
+            <div class="p-3">
+                <h6 class="text-muted mb-3">AI Assistant</h6>
+                
+                <!-- Tab Navigation -->
+                <div class="d-grid gap-2 mb-3">
+                    <button class="btn btn-primary active" onclick="showTab('general')" id="general-tab">
+                        <i class="fas fa-comments"></i> Umumiy Chat
+                    </button>
+                    <button class="btn btn-outline-primary" onclick="showTab('subjects')" id="subjects-tab">
+                        <i class="fas fa-book"></i> Fanlar bo'yicha
+                    </button>
+                </div>
+                
+                <div class="mb-3">
+                    <button class="btn btn-sm btn-outline-success w-100" onclick="newChat()">
+                        <i class="fas fa-plus"></i> Yangi Chat
+                    </button>
+                </div>
+                
+                <div id="chat-history" class="small">
+                    <p class="text-muted">Chat tarixi</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="col-md-9 col-lg-10">
+            <!-- General Chat Tab -->
+            <div id="general-chat" class="tab-content">
+                <div class="d-flex flex-column h-100">
+                    <!-- Header -->
+                    <div class="bg-white border-bottom p-3">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <div class="bg-primary rounded-circle p-2" style="width: 40px; height: 40px;">
+                                    <i class="fas fa-robot text-white"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">AI Assistant - Umumiy Chat</h5>
+                                <small class="text-success">Online - Har qanday savolga javob beradi</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Messages Area -->
+                    <div class="flex-grow-1 overflow-auto p-3 bg-light" id="general-messages">
+                        <div class="text-center text-muted mb-3">
+                            <i class="fas fa-robot fa-3x mb-2"></i>
+                            <p>Assalomu alaykum! Men har qanday savolga javob bera oladigan AI Assistantman. Savollaringizni yozing!</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Input Area -->
+                    <div class="bg-white border-top p-3">
+                        <form method="POST" action="{{ url_for('ai_general_chat') }}" id="general-form">
+                            <div class="input-group">
+                                <textarea class="form-control" name="question" rows="2" 
+                                          placeholder="Savolingizni yozing..." required></textarea>
+                                <button type="submit" class="btn btn-primary" id="general-send-btn">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Subjects Chat Tab -->
+            <div id="subjects-chat" class="tab-content" style="display: none;">
+                <div class="d-flex flex-column h-100">
+                    <!-- Header -->
+                    <div class="bg-white border-bottom p-3">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <div class="bg-success rounded-circle p-2" style="width: 40px; height: 40px;">
+                                    <i class="fas fa-graduation-cap text-white"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">AI Assistant - Fanlar bo'yicha</h5>
+                                <small class="text-success">Online - Fanlar va mavzular bo'yicha yordam</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Subject Selection -->
+                    <div class="bg-light border-bottom p-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">Fan tanlang:</label>
+                                <select class="form-select" id="subject-select" onchange="loadTopics()">
+                                    <option value="">Fan tanlang...</option>
+                                    {% for subject in subjects %}
+                                    <option value="{{ subject.id }}">{{ subject.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Mavzu tanlang:</label>
+                                <select class="form-select" id="topic-select" onchange="loadTopicInfo()">
+                                    <option value="">Avval fan tanlang...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Messages Area -->
+                    <div class="flex-grow-1 overflow-auto p-3 bg-light" id="subjects-messages">
+                        <div class="text-center text-muted mb-3">
+                            <i class="fas fa-book fa-3x mb-2"></i>
+                            <p>Fan va mavzu tanlang, men to'liq ma'lumot va test tayyorlayman!</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Input Area -->
+                    <div class="bg-white border-top p-3">
+                        <form method="POST" action="{{ url_for('ai_subjects_chat') }}" id="subjects-form">
+                            <div class="input-group">
+                                <textarea class="form-control" name="question" rows="2" 
+                                          placeholder="Mavzu bo'yicha savolingizni yozing..." required></textarea>
+                                <button type="submit" class="btn btn-success" id="subjects-send-btn">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                            <input type="hidden" name="subject_id" id="hidden-subject-id">
+                            <input type="hidden" name="topic_id" id="hidden-topic-id">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.h-100 {
+    min-height: calc(100vh - 56px);
+}
+.tab-content {
+    height: 100%;
+}
+.active {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: white !important;
+}
+</style>
+
+<script>
+// Global variables
+let subjectsData = [];
+let topicsData = [];
+
+function showTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.style.display = 'none';
+    });
+    
+    // Remove active class from all tab buttons
+    document.querySelectorAll('[id$="-tab"]').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.add('btn-outline-primary');
+        btn.classList.remove('btn-primary');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabName + '-chat').style.display = 'block';
+    
+    // Add active class to selected tab button
+    const activeBtn = document.getElementById(tabName + '-tab');
+    activeBtn.classList.add('active');
+    activeBtn.classList.remove('btn-outline-primary');
+    activeBtn.classList.add('btn-primary');
+}
+
+function newChat() {
+    if (document.getElementById('general-chat').style.display !== 'none') {
+        document.getElementById('general-messages').innerHTML = `
+            <div class="text-center text-muted mb-3">
+                <i class="fas fa-robot fa-3x mb-2"></i>
+                <p>Assalomu alaykum! Men har qanday savolga javob bera oladigan AI Assistantman. Savollaringizni yozing!</p>
+            </div>
+        `;
+        document.querySelector('#general-form textarea').value = '';
+        document.querySelector('#general-form textarea').focus();
+    } else {
+        document.getElementById('subjects-messages').innerHTML = `
+            <div class="text-center text-muted mb-3">
+                <i class="fas fa-book fa-3x mb-2"></i>
+                <p>Fan va mavzu tanlang, men to'liq ma'lumot va test tayyorlayman!</p>
+            </div>
+        `;
+        document.querySelector('#subjects-form textarea').value = '';
+        document.querySelector('#subjects-form textarea').focus();
+    }
+}
+
+function loadTopics() {
+    const subjectId = document.getElementById('subject-select').value;
+    const topicSelect = document.getElementById('topic-select');
+    
+    topicSelect.innerHTML = '<option value="">Mavzu tanlang...</option>';
+    
+    if (subjectId) {
+        const topics = topicsData.filter(topic => topic.subject_id == subjectId);
+        topics.forEach(topic => {
+            const option = document.createElement('option');
+            option.value = topic.id;
+            option.textContent = topic.title;
+            topicSelect.appendChild(option);
+        });
+    }
+    
+    // Update hidden fields
+    document.getElementById('hidden-subject-id').value = subjectId;
+    document.getElementById('hidden-topic-id').value = '';
+}
+
+function loadTopicInfo() {
+    const topicId = document.getElementById('topic-select').value;
+    document.getElementById('hidden-topic-id').value = topicId;
+    
+    if (topicId) {
+        // Auto-load topic info
+        const form = document.getElementById('subjects-form');
+        const formData = new FormData(form);
+        formData.set('question', 'Bu mavzu haqida toliq malumot bering va test yarating');
+        
+        fetch('/ai_subjects_chat', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Update messages area with response
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            const newMessages = tempDiv.querySelector('#subjects-messages');
+            if (newMessages) {
+                document.getElementById('subjects-messages').innerHTML = newMessages.innerHTML;
+            }
+        });
+    }
+}
+
+// Handle form submissions
+document.getElementById('general-form').addEventListener('submit', function(e) {
+    const sendBtn = document.getElementById('general-send-btn');
+    const textarea = this.querySelector('textarea');
+    const messagesArea = document.getElementById('general-messages');
+    
+    // Add user message
+    const userMessage = textarea.value;
+    const userMsgDiv = document.createElement('div');
+    userMsgDiv.className = 'd-flex justify-content-end mb-2';
+    userMsgDiv.innerHTML = `
+        <div class="bg-primary text-white rounded p-3" style="max-width: 70%;">
+            <div class="small text-white-50 mb-1">Siz</div>
+            <div>${userMessage}</div>
+        </div>
+    `;
+    messagesArea.appendChild(userMsgDiv);
+    
+    // Show typing indicator
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'd-flex justify-content-start mb-2';
+    typingDiv.innerHTML = `
+        <div class="bg-white rounded p-3 border" style="max-width: 70%;">
+            <div class="small text-muted mb-1">AI Assistant</div>
+            <div><i class="fas fa-spinner fa-spin"></i> Yozilmoqda...</div>
+        </div>
+    `;
+    messagesArea.appendChild(typingDiv);
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+    
+    // Disable button
+    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    sendBtn.disabled = true;
+    
+    // Clear textarea
+    textarea.value = '';
+});
+
+document.getElementById('subjects-form').addEventListener('submit', function(e) {
+    const sendBtn = document.getElementById('subjects-send-btn');
+    const textarea = this.querySelector('textarea');
+    const messagesArea = document.getElementById('subjects-messages');
+    
+    // Add user message
+    const userMessage = textarea.value;
+    const userMsgDiv = document.createElement('div');
+    userMsgDiv.className = 'd-flex justify-content-end mb-2';
+    userMsgDiv.innerHTML = `
+        <div class="bg-success text-white rounded p-3" style="max-width: 70%;">
+            <div class="small text-white-50 mb-1">Siz</div>
+            <div>${userMessage}</div>
+        </div>
+    `;
+    messagesArea.appendChild(userMsgDiv);
+    
+    // Show typing indicator
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'd-flex justify-content-start mb-2';
+    typingDiv.innerHTML = `
+        <div class="bg-white rounded p-3 border" style="max-width: 70%;">
+            <div class="small text-muted mb-1">AI Assistant</div>
+            <div><i class="fas fa-spinner fa-spin"></i> Yozilmoqda...</div>
+        </div>
+    `;
+    messagesArea.appendChild(typingDiv);
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+    
+    // Disable button
+    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    sendBtn.disabled = true;
+    
+    // Clear textarea
+    textarea.value = '';
+});
+
+// Auto-resize textareas
+document.querySelectorAll('textarea').forEach(textarea => {
+    textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    });
+});
+</script>
+{% endblock %}

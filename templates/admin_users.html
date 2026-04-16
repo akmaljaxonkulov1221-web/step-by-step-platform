@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - Step by Step Platform{% endblock %}
+
+{% block content %}
+<h1>User Management</h1>
+<p style="color: #666; margin-bottom: 20px;">Manage platform users, roles, and permissions</p>
+
+<div class="form">
+    <h2>Add New User</h2>
+    <form method="post" action="/admin/users/create">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="form-group">
+                <label for="username">Username *</label>
+                <input type="text" id="username" name="username" required placeholder="Enter username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password *</label>
+                <input type="password" id="password" name="password" required placeholder="Enter password">
+            </div>
+            <div class="form-group">
+                <label for="first_name">First Name *</label>
+                <input type="text" id="first_name" name="first_name" required placeholder="Enter first name">
+            </div>
+            <div class="form-group">
+                <label for="last_name">Last Name *</label>
+                <input type="text" id="last_name" name="last_name" required placeholder="Enter last name">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="group_id">Group</label>
+            <select id="group_id" name="group_id">
+                <option value="">Select Group (Optional)</option>
+                {% for group in groups %}
+                <option value="{{ group.id }}">{{ group.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div style="display: flex; gap: 20px; margin: 20px 0;">
+            <div class="checkbox">
+                <input type="checkbox" id="is_admin" name="is_admin">
+                <label for="is_admin">Admin User</label>
+            </div>
+            <div class="checkbox">
+                <input type="checkbox" id="is_group_leader" name="is_group_leader">
+                <label for="is_group_leader">Group Leader</label>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn">Add User</button>
+        <a href="/admin/dashboard" class="btn" style="background: #6c757d;">Cancel</a>
+    </form>
+</div>
+
+<h2>Existing Users ({{ users|length }} total)</h2>
+<div style="margin-bottom: 20px;">
+    <input type="text" id="search" placeholder="Search users..." style="padding: 10px; width: 300px; border: 1px solid #ddd; border-radius: 5px;">
+</div>
+
+<table class="table" id="usersTable">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Full Name</th>
+            <th>Role</th>
+            <th>Group</th>
+            <th>Created</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.id }}</td>
+            <td>
+                <strong>{{ user.username }}</strong>
+                {% if user.username == 'admin' %}
+                <span style="background: #e53e3e; color: white; padding: 2px 6px; border-radius: 3px; font-size: 12px;">SYSTEM</span>
+                {% endif %}
+            </td>
+            <td>{{ user.first_name }} {{ user.last_name }}</td>
+            <td>
+                {% if user.is_admin %}
+                    <span style="color: #e53e3e; font-weight: bold;">Admin</span>
+                {% elif user.is_group_leader %}
+                    <span style="color: #38a169; font-weight: bold;">Group Leader</span>
+                {% else %}
+                    <span style="color: #667eea;">Student</span>
+                {% endif %}
+            </td>
+            <td>{{ user.group.name if user.group else '<span style="color: #999;">No Group</span>'|safe }}</td>
+            <td>{{ user.id }} (ID)</td>
+            <td>
+                {% if user.username != 'admin' %}
+                <form method="post" action="/admin/users/{{ user.id }}/delete" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete user {{ user.username }}?');">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+                {% else %}
+                <span style="color: #999; font-size: 12px;">Protected</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+    <h3>User Statistics</h3>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 15px;">
+        <div style="text-align: center; padding: 15px; background: white; border-radius: 5px;">
+            <h4 style="color: #667eea; margin: 0;">{{ users|length }}</h4>
+            <p style="margin: 5px 0 0 0; color: #666;">Total Users</p>
+        </div>
+        <div style="text-align: center; padding: 15px; background: white; border-radius: 5px;">
+            <h4 style="color: #e53e3e; margin: 0;">{{ users|selectattr('is_admin')|list|length }}</h4>
+            <p style="margin: 5px 0 0 0; color: #666;">Admins</p>
+        </div>
+        <div style="text-align: center; padding: 15px; background: white; border-radius: 5px;">
+            <h4 style="color: #38a169; margin: 0;">{{ users|selectattr('is_group_leader')|list|length }}</h4>
+            <p style="margin: 5px 0 0 0; color: #666;">Leaders</p>
+        </div>
+        <div style="text-align: center; padding: 15px; background: white; border-radius: 5px;">
+            <h4 style="color: #667eea; margin: 0;">{{ users|rejectattr('is_admin')|rejectattr('is_group_leader')|list|length }}</h4>
+            <p style="margin: 5px 0 0 0; color: #666;">Students</p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Simple search functionality
+document.getElementById('search').addEventListener('keyup', function() {
+    const searchValue = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#usersTable tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchValue) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

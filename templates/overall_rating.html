@@ -1,0 +1,474 @@
+{% extends "base.html" %}
+
+{% block title %}Umumiy Reyting{% endblock %}
+
+{% block page_title %}Umumiy Reyting{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-gradient-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-trophy"></i> Umumiy O'quvchi Reytingi
+                </h5>
+                <small class="text-white-50">Barcha guruhlardagi o'quvchilar reytingi (faqat statistika)</small>
+            </div>
+            <div class="card-body">
+                {% if student_data %}
+                    <!-- Top 3 Winners Podium -->
+                    <div class="row mb-5">
+                        <div class="col-12">
+                            <h4 class="text-center mb-4">
+                                <i class="fas fa-crown text-warning"></i> Eng Yaxshi 3 O'quvchi <i class="fas fa-crown text-warning"></i>
+                            </h4>
+                        </div>
+                        {% for data in student_data[:3] %}
+                        <div class="col-md-4 mb-3">
+                            <div class="podium-card podium-{{ data.rank }}">
+                                <div class="podium-header">
+                                    {% if data.rank == 1 %}
+                                        <div class="trophy-gold">
+                                            <i class="fas fa-trophy"></i>
+                                        </div>
+                                        <h3 class="text-warning">Chempion</h3>
+                                    {% elif data.rank == 2 %}
+                                        <div class="trophy-silver">
+                                            <i class="fas fa-medal"></i>
+                                        </div>
+                                        <h3 class="text-secondary">Vitse-chempion</h3>
+                                    {% elif data.rank == 3 %}
+                                        <div class="trophy-bronze">
+                                            <i class="fas fa-medal"></i>
+                                        </div>
+                                        <h3 class="text-info">Bronza</h3>
+                                    {% endif %}
+                                </div>
+                                <div class="podium-body">
+                                    <h5 class="student-rank">{{ data.rank }}-o'rin</h5>
+                                    <p class="student-group">{{ data.student.group.name if data.student.group else 'Guruh yo\'q' }}</p>
+                                    <div class="percentage-display">
+                                        <div class="big-percentage">{{ "%.1f"|format(data.avg_percentage) }}%</div>
+                                        <div class="progress mt-2">
+                                            <div class="progress-bar progress-{{ data.rank }}" style="width: {{ data.avg_percentage }}%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="stats-row">
+                                        <div class="stat-item">
+                                            <span class="stat-number">{{ data.total_tests }}</span>
+                                            <span class="stat-label">Test</span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-number">{{ data.total_points }}</span>
+                                            <span class="stat-label">Ball</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- All Students Ranking Table -->
+                    <div class="ranking-section">
+                        <h5 class="mb-3">
+                            <i class="fas fa-list-ol"></i> Barcha O'quvchilar Reytingi
+                        </h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover ranking-table">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>O'rin</th>
+                                        <th>Guruh</th>
+                                        <th>O'rtacha foiz</th>
+                                        <th>Testlar</th>
+                                        <th>Ball</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for data in student_data %}
+                                    <tr class="{% if data.rank <= 3 %}top-three{% else %}regular-student{% endif %}">
+                                        <td>
+                                            {% if data.rank <= 3 %}
+                                                <div class="rank-badge rank-{{ data.rank }}">
+                                                    {% if data.rank == 1 %}
+                                                        <i class="fas fa-trophy"></i>
+                                                    {% elif data.rank == 2 %}
+                                                        <i class="fas fa-medal"></i>
+                                                    {% else %}
+                                                        <i class="fas fa-medal"></i>
+                                                    {% endif %}
+                                                    {{ data.rank }}
+                                                </div>
+                                            {% else %}
+                                                <span class="regular-rank">{{ data.rank }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="group-badge">{{ data.student.group.name if data.student.group else 'Guruh yo\'q' }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="percentage-cell">
+                                                <div class="percentage-bar">
+                                                    <div class="progress" style="height: 8px;">
+                                                        <div class="progress-bar progress-{{ data.rank if data.rank <= 3 else 'default' }}" 
+                                                             style="width: {{ data.avg_percentage }}%"></div>
+                                                    </div>
+                                                </div>
+                                                <span class="percentage-text">{{ "%.1f"|format(data.avg_percentage) }}%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-{{ data.rank if data.rank <= 3 else 'default' }}">{{ data.total_tests }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-{{ data.rank if data.rank <= 3 else 'default' }}">{{ data.total_points }}</span>
+                                        </td>
+                                        <td>
+                                            {% if data.rank == 1 %}
+                                                <span class="badge badge-champion">Chempion</span>
+                                            {% elif data.rank == 2 %}
+                                                <span class="badge badge-vitse">Vitse-chempion</span>
+                                            {% elif data.rank == 3 %}
+                                                <span class="badge badge-bronze">Bronza</span>
+                                            {% elif data.avg_percentage >= 90 %}
+                                                <span class="badge badge-success">A'lo</span>
+                                            {% elif data.avg_percentage >= 75 %}
+                                                <span class="badge badge-primary">Yaxshi</span>
+                                            {% elif data.avg_percentage >= 60 %}
+                                                <span class="badge badge-warning">Qoniqarli</span>
+                                            {% elif data.avg_percentage > 0 %}
+                                                <span class="badge badge-danger">Qoniqarsiz</span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">Test yo'q</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Statistics Summary -->
+                    <div class="row mt-5">
+                        <div class="col-12">
+                            <div class="card bg-light">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-chart-bar"></i> Reyting Statistikasi
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-md-3">
+                                            <div class="stat-box">
+                                                <div class="stat-number text-primary">{{ student_data|length }}</div>
+                                                <div class="stat-label">Jami o'quvchilar</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stat-box">
+                                                <div class="stat-number text-success">{{ student_data|selectattr('avg_percentage', 'gt', 0)|list|length }}</div>
+                                                <div class="stat-label">Test topshirganlar</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stat-box">
+                                                <div class="stat-number text-warning">{{ student_data|selectattr('avg_percentage', 'ge', 70)|list|length }}</div>
+                                                <div class="stat-label">70% dan yuqori</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="stat-box">
+                                                <div class="stat-number text-info">{{ "%.1f"|format((student_data|selectattr('avg_percentage', 'gt', 0)|list|sum(attribute='avg_percentage') / (student_data|selectattr('avg_percentage', 'gt', 0)|list|length)) if student_data|selectattr('avg_percentage', 'gt', 0)|list else 0) }}%</div>
+                                                <div class="stat-label">O'rtacha foiz</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-trophy fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">Reyting mavjud emas</h4>
+                        <p class="text-muted">Hali hech qanday test natijalari yo'q</p>
+                        <a href="{{ url_for('tests') }}" class="btn btn-primary">
+                            <i class="fas fa-play"></i> Testlarni ko'rish
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Podium Cards */
+.podium-card {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+}
+
+.podium-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+.podium-1 {
+    background: linear-gradient(135deg, #FFD700, #FFA500, #FFD700);
+    color: #000;
+    border: 4px solid #FFD700;
+    box-shadow: 0 20px 50px rgba(255, 215, 0, 0.6);
+    transform: scale(1.05);
+}
+
+.podium-2 {
+    background: linear-gradient(135deg, #C0C0C0, #808080, #C0C0C0);
+    color: #000;
+    border: 3px solid #C0C0C0;
+    box-shadow: 0 15px 40px rgba(192, 192, 192, 0.4);
+    transform: scale(1.02);
+}
+
+.podium-3 {
+    background: linear-gradient(135deg, #CD7F32, #8B4513, #CD7F32);
+    color: #fff;
+    border: 3px solid #CD7F32;
+    box-shadow: 0 15px 40px rgba(205, 127, 50, 0.4);
+}
+
+.podium-header {
+    text-align: center;
+    padding: 20px;
+    background: rgba(255,255,255,0.1);
+}
+
+.trophy-gold, .trophy-silver, .trophy-bronze {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.trophy-gold {
+    color: #FFD700;
+    animation: gold-bounce 2s infinite;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+}
+
+.trophy-silver {
+    color: #C0C0C0;
+    animation: silver-bounce 2.5s infinite;
+    filter: drop-shadow(0 0 8px rgba(192, 192, 192, 0.6));
+}
+
+.trophy-bronze {
+    color: #CD7F32;
+    animation: bronze-bounce 3s infinite;
+    filter: drop-shadow(0 0 6px rgba(205, 127, 50, 0.4));
+}
+
+@keyframes gold-bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-15px) rotate(5deg); }
+    40% { transform: translateY(-10px) rotate(-3deg); }
+    60% { transform: translateY(-5px) rotate(2deg); }
+}
+
+@keyframes silver-bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-12px) rotate(3deg); }
+    40% { transform: translateY(-8px) rotate(-2deg); }
+    60% { transform: translateY(-4px) rotate(1deg); }
+}
+
+@keyframes bronze-bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-10px) rotate(2deg); }
+    40% { transform: translateY(-6px) rotate(-1deg); }
+    60% { transform: translateY(-3px) rotate(1deg); }
+}
+
+.podium-body {
+    padding: 20px;
+    text-align: center;
+}
+
+.student-rank {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.student-group {
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+}
+
+.big-percentage {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.stats-row {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 15px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+/* Ranking Table */
+.ranking-table {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.top-three {
+    background: linear-gradient(90deg, rgba(255,215,0,0.1), rgba(255,215,0,0.05));
+    border-left: 4px solid;
+}
+
+.top-three:nth-child(1) { border-left-color: #FFD700; }
+.top-three:nth-child(2) { border-left-color: #C0C0C0; }
+.top-three:nth-child(3) { border-left-color: #CD7F32; }
+
+.regular-student:hover {
+    background-color: #f8f9fa;
+}
+
+.rank-badge {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.rank-1 {
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    color: #000;
+}
+
+.rank-2 {
+    background: linear-gradient(45deg, #C0C0C0, #808080);
+    color: #000;
+}
+
+.rank-3 {
+    background: linear-gradient(45deg, #CD7F32, #8B4513);
+    color: #fff;
+}
+
+.regular-rank {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #6c757d;
+}
+
+.group-badge {
+    background: #6c757d;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
+}
+
+.percentage-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.percentage-bar {
+    flex: 1;
+    min-width: 80px;
+}
+
+.percentage-text {
+    font-weight: bold;
+    min-width: 50px;
+    text-align: right;
+}
+
+.progress-1 { background: linear-gradient(90deg, #FFD700, #FFA500); }
+.progress-2 { background: linear-gradient(90deg, #C0C0C0, #808080); }
+.progress-3 { background: linear-gradient(90deg, #CD7F32, #8B4513); }
+.progress-default { background: #007bff; }
+
+.badge-1, .badge-2, .badge-3 {
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    color: #000;
+}
+
+.badge-2 { background: linear-gradient(45deg, #C0C0C0, #808080); }
+.badge-3 { background: linear-gradient(45deg, #CD7F32, #8B4513); color: #fff; }
+.badge-default { background: #6c757d; }
+
+.badge-champion { background: linear-gradient(45deg, #FFD700, #FFA500); }
+.badge-vitse { background: linear-gradient(45deg, #C0C0C0, #808080); }
+.badge-bronze { background: linear-gradient(45deg, #CD7F32, #8B4513); color: #fff; }
+
+/* Statistics */
+.stat-box {
+    padding: 20px;
+    border-radius: 10px;
+    background: white;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.stat-box:hover {
+    transform: translateY(-3px);
+}
+
+.stat-box .stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.stat-box .stat-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .podium-card {
+        margin-bottom: 20px;
+    }
+    
+    .percentage-cell {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .percentage-text {
+        text-align: left;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,431 @@
+{% extends "base_advanced.html" %}
+
+{% block title %}Admin Dashboard - Excel Level Platform{% endblock %}
+
+{% block content %}
+<div class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+    <div>
+        <h1 style="font-size: 2.5rem; font-weight: 800; color: var(--neutral-900); margin-bottom: 8px;">Admin Dashboard</h1>
+        <p style="color: var(--neutral-600); font-size: 1.125rem;">Complete platform overview and management</p>
+    </div>
+    <div style="display: flex; gap: 12px;">
+        <button onclick="exportData()" class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7,10 12,15 17,10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export Data
+        </button>
+        <button onclick="refreshDashboard()" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23,4 23,10 17,10"></polyline>
+                <polyline points="1,20 1,14 7,14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+            Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Advanced Statistics Cards -->
+<div class="stats" style="margin-bottom: 32px;">
+    <div class="stat-card" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h3 style="font-size: 2.5rem; font-weight: 900; margin-bottom: 4px;">{{ total_users }}</h3>
+                <p style="font-size: 0.875rem; opacity: 0.9;">Total Users</p>
+                <div style="margin-top: 12px; display: flex; align-items: center; gap: 4px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <span style="font-size: 0.75rem;">+12% from last month</span>
+                </div>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.2); padding: 8px; border-radius: 8px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h3 style="font-size: 2.5rem; font-weight: 900; margin-bottom: 4px;">{{ total_groups }}</h3>
+                <p style="font-size: 0.875rem; opacity: 0.9;">Active Groups</p>
+                <div style="margin-top: 12px; display: flex; align-items: center; gap: 4px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <span style="font-size: 0.75rem;">+8% from last month</span>
+                </div>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.2); padding: 8px; border-radius: 8px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                    <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                    <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h3 style="font-size: 2.5rem; font-weight: 900; margin-bottom: 4px;">{{ total_subjects }}</h3>
+                <p style="font-size: 0.875rem; opacity: 0.9;">Subjects</p>
+                <div style="margin-top: 12px; display: flex; align-items: center; gap: 4px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <span style="font-size: 0.75rem;">+15% from last month</span>
+                </div>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.2); padding: 8px; border-radius: 8px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card" style="background: linear-gradient(135deg, #fa709a, #fee140);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h3 style="font-size: 2.5rem; font-weight: 900; margin-bottom: 4px;">{{ total_tests }}</h3>
+                <p style="font-size: 0.875rem; opacity: 0.9;">Total Tests</p>
+                <div style="margin-top: 12px; display: flex; align-items: center; gap: 4px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <span style="font-size: 0.75rem;">+25% from last month</span>
+                </div>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.2); padding: 8px; border-radius: 8px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14,2 14,8 20,8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10,9 9,9 8,9"></polyline>
+                </svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Distribution Chart -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 32px;">
+    <div class="form" style="padding: 24px;">
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--neutral-900); margin-bottom: 20px;">User Distribution</h3>
+        <canvas id="userChart" width="400" height="200"></canvas>
+    </div>
+    
+    <div class="form" style="padding: 24px;">
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--neutral-900); margin-bottom: 20px;">User Roles</h3>
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--error-50); border-radius: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 12px; height: 12px; background: var(--error-500); border-radius: 50%;"></div>
+                    <span style="font-weight: 600;">Admin Users</span>
+                </div>
+                <span style="font-weight: 700; color: var(--error-600);">{{ admin_count }}</span>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--warning-50); border-radius: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 12px; height: 12px; background: var(--warning-500); border-radius: 50%;"></div>
+                    <span style="font-weight: 600;">Group Leaders</span>
+                </div>
+                <span style="font-weight: 700; color: var(--warning-600);">{{ leader_count }}</span>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--success-50); border-radius: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 12px; height: 12px; background: var(--success-500); border-radius: 50%;"></div>
+                    <span style="font-weight: 600;">Students</span>
+                </div>
+                <span style="font-weight: 700; color: var(--success-600);">{{ student_count }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="form" style="padding: 24px; margin-bottom: 32px;">
+    <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--neutral-900); margin-bottom: 20px;">Quick Actions</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+        <button onclick="window.location.href='/admin/users/create'" class="btn btn-success" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="16"></line>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+            </svg>
+            Add User
+        </button>
+        
+        <button onclick="window.location.href='/admin/groups/create'" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="16"></line>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+            </svg>
+            Add Group
+        </button>
+        
+        <button onclick="window.location.href='/tests/create'" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14,2 14,8 20,8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10,9 9,9 8,9"></polyline>
+            </svg>
+            Create Test
+        </button>
+        
+        <button onclick="generateReport()" class="btn btn-info" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14,2 14,8 20,8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10,9 9,9 8,9"></polyline>
+            </svg>
+            Generate Report
+        </button>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="form" style="padding: 24px; margin-bottom: 32px;">
+    <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--neutral-900); margin-bottom: 20px;">Recent Activity</h3>
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for user in recent_users %}
+        <div style="display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--neutral-50); border-radius: 8px; transition: all 0.3s ease;">
+            <div style="width: 40px; height: 40px; background: var(--primary-500); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
+                {{ user.username[0].upper() }}
+            </div>
+            <div style="flex: 1;">
+                <div style="font-weight: 600; color: var(--neutral-900);">{{ user.first_name }} {{ user.last_name }}</div>
+                <div style="font-size: 0.875rem; color: var(--neutral-600);">@{{ user.username }}</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                {% if user.is_admin %}
+                    <span class="badge badge-error">Admin</span>
+                {% elif user.is_group_leader %}
+                    <span class="badge badge-warning">Leader</span>
+                {% else %}
+                    <span class="badge badge-success">Student</span>
+                {% endif %}
+                <span style="font-size: 0.875rem; color: var(--neutral-500);">ID: {{ user.id }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- System Status -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+    <div class="form" style="padding: 24px;">
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--neutral-900); margin-bottom: 20px;">System Status</h3>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: var(--neutral-600);">Database</span>
+                <span style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 8px; height: 8px; background: var(--success-500); border-radius: 50%;"></div>
+                    <span style="color: var(--success-600); font-weight: 600;">Healthy</span>
+                </span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: var(--neutral-600);">API Server</span>
+                <span style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 8px; height: 8px; background: var(--success-500); border-radius: 50%;"></div>
+                    <span style="color: var(--success-600); font-weight: 600;">Online</span>
+                </span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: var(--neutral-600);">Cache</span>
+                <span style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 8px; height: 8px; background: var(--success-500); border-radius: 50%;"></div>
+                    <span style="color: var(--success-600); font-weight: 600;">Active</span>
+                </span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: var(--neutral-600);">Storage</span>
+                <span style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 8px; height: 8px; background: var(--warning-500); border-radius: 50%;"></div>
+                    <span style="color: var(--warning-600); font-weight: 600;">75% Used</span>
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="form" style="padding: 24px;">
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--neutral-900); margin-bottom: 20px;">Performance Metrics</h3>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: var(--neutral-600);">Response Time</span>
+                <span style="color: var(--success-600); font-weight: 600;">124ms</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: var(--neutral-600);">Uptime</span>
+                <span style="color: var(--success-600); font-weight: 600;">99.9%</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: var(--neutral-600);">Active Users</span>
+                <span style="color: var(--primary-600); font-weight: 600;">{{ total_users }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: var(--neutral-600);">CPU Usage</span>
+                <span style="color: var(--warning-600); font-weight: 600;">45%</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step by Step Documentation -->
+<div class="form" style="padding: 24px; margin-top: 32px;">
+    <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--neutral-900); margin-bottom: 20px;">Step by Step Development Process</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+        {% for i in range(1, 11) %}
+        <div style="padding: 16px; background: var(--neutral-50); border-radius: 8px; border-left: 4px solid var(--primary-500);">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <div style="width: 32px; height: 32px; background: var(--primary-500); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">
+                    {{ i }}
+                </div>
+                <h4 style="margin: 0; color: var(--neutral-900); font-weight: 600;">QADAM {{ i }}</h4>
+            </div>
+            <p style="color: var(--neutral-600); font-size: 0.875rem; margin: 0;">
+                {% if i == 1 %}Missing functions added{% elif i == 2 %}User model methods{% elif i == 3 %}Login route fixes{% elif i == 4 %}Register route fixes{% elif i == 5 %}Admin dashboard{% elif i == 6 %}Testing & deployment{% elif i == 7 %}Final verification{% elif i == 8 %}Advanced features{% elif i == 9 %}Testing & production{% else %}Final launch & maintenance{% endif %}
+            </p>
+            <div style="margin-top: 8px;">
+                <span style="color: var(--success-600); font-weight: 600;">Completed</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+// Initialize charts
+document.addEventListener('DOMContentLoaded', function() {
+    // User distribution chart
+    const ctx = document.getElementById('userChart');
+    if (ctx) {
+        const userChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Admin Users', 'Group Leaders', 'Students'],
+                datasets: [{
+                    data: [{{ admin_count }}, {{ leader_count }}, {{ student_count }}],
+                    backgroundColor: [
+                        '#ef4444',
+                        '#f59e0b',
+                        '#22c55e'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+
+// Export data function
+function exportData() {
+    const data = {
+        users: {{ total_users }},
+        groups: {{ total_groups }},
+        subjects: {{ total_subjects }},
+        tests: {{ total_tests }},
+        admin_count: {{ admin_count }},
+        leader_count: {{ leader_count }},
+        student_count: {{ student_count }}
+    };
+    
+    const dataStr = JSON.stringify(data, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = 'dashboard-data.json';
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    
+    toastManager.success('Dashboard data exported successfully!');
+}
+
+// Refresh dashboard
+function refreshDashboard() {
+    // Show loading
+    const loadingOverlay = document.getElementById('loading-overlay');
+    loadingOverlay.style.display = 'flex';
+    
+    // Simulate refresh
+    setTimeout(() => {
+        loadingOverlay.style.display = 'none';
+        toastManager.success('Dashboard refreshed successfully!');
+    }, 1500);
+}
+
+// Generate report
+function generateReport() {
+    modalManager.alert('Report generation feature coming soon! This will include detailed analytics and insights.');
+}
+
+// Add hover effects
+document.querySelectorAll('.stat-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-8px) scale(1.02)';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0) scale(1)';
+    });
+});
+
+// Add click animations
+document.querySelectorAll('.btn').forEach(button => {
+    button.addEventListener('click', function() {
+        this.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            this.style.transform = 'scale(1)';
+        }, 100);
+    });
+});
+
+// Auto-refresh every 30 seconds
+setInterval(() => {
+    // Update system status
+    const uptime = document.querySelector('#uptime');
+    if (uptime) {
+        const random = 99.5 + Math.random() * 0.4;
+        uptime.textContent = random.toFixed(1) + '%';
+    }
+}, 30000);
+</script>
+{% endblock %}

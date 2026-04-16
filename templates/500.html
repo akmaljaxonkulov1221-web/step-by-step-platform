@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error - Step by Step Platform{% endblock %}
+
+{% block content %}
+<div style="text-align: center; padding: 50px 20px;">
+    <div style="font-size: 120px; color: #e53e3e; font-weight: bold; margin-bottom: 20px;">500</div>
+    <h1 style="color: #333; margin-bottom: 20px;">Server Error</h1>
+    <p style="color: #666; font-size: 18px; margin-bottom: 30px;">
+        Something went wrong on our end. We're working to fix it.
+    </p>
+    <div style="background: #f8d7da; padding: 20px; border-radius: 10px; margin: 20px auto; max-width: 600px; text-align: left;">
+        <h3 style="color: #721c24; margin-bottom: 10px;">What happened?</h3>
+        <ul style="color: #721c24;">
+            <li>The server encountered an unexpected error</li>
+            <li>This could be due to database issues or system maintenance</li>
+            <li>We've been notified and are working on a fix</li>
+        </ul>
+    </div>
+    <div style="display: flex; gap: 15px; justify-content: center;">
+        <a href="/admin/dashboard" class="btn">Try Dashboard</a>
+        <a href="/login" class="btn">Go to Login</a>
+        <a href="/health" class="btn">Check System Health</a>
+    </div>
+</div>
+{% endblock %}

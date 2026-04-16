@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Test Natijasi{% endblock %}
+
+{% block page_title %}Test Natijasi{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line"></i> Test Natijasi
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h2>{{ test_result.score }}/{{ test_result.total_questions }}</h2>
+                        <div class="progress mb-3" style="height: 25px;">
+                            <div class="progress-bar {% if test_result.percentage >= 80 %}bg-success{% elif test_result.percentage >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                 style="width: {{ test_result.percentage }}%">
+                                {{ "%.1f"|format(test_result.percentage) }}%
+                            </div>
+                        </div>
+                        
+                        {% if test_result.percentage >= 80 %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-trophy"></i> A'lo! Testni muvaffaqiyatli tugatdingiz!
+                        </div>
+                        {% elif test_result.percentage >= 60 %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-thumbs-up"></i> Yaxshi! Biroz ko'proq tayyorlanish kerak.
+                        </div>
+                        {% else %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Qayta urinib ko'ring!
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if test_result.correct_answers %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-check"></i> To'g'ri javoblar
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-0">{{ test_result.correct_answers }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card border-danger">
+                                <div class="card-header bg-danger text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-times"></i> Noto'g'ri javoblar
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-0">{{ test_result.incorrect_answers }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-4">
+                        <h5>Barcha savollar va to'g'ri javoblar:</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Savol</th>
+                                        <th>Sizning javobingiz</th>
+                                        <th>To'g'ri javob</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for question in questions %}
+                                    <tr>
+                                        <td>{{ loop.index }}. {{ question.question[:50] }}{% if question.question|length > 50 %}...{% endif %}</td>
+                                        <td>
+                                            {% if user_answers and user_answers[question.id] %}
+                                                {{ user_answers[question.id] }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td class="fw-bold text-success">{{ question.correct_answer }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 text-center">
+                        <a href="{{ url_for('tests') }}" class="btn btn-primary me-2">
+                            <i class="fas fa-arrow-left"></i> Testlarga qaytish
+                        </a>
+                        
+                        <button type="button" class="btn btn-success" onclick="requestMoreQuestions()">
+                            <i class="fas fa-plus"></i> Yana savol berish
+                        </button>
+                        
+                        {% if test_result.percentage >= 80 %}
+                        <a href="{{ url_for('upload_certificate') }}" class="btn btn-warning">
+                            <i class="fas fa-certificate"></i> Sertifikat yuklash
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function requestMoreQuestions() {
+    if (confirm('Ushbu mavzu bo'yicha qo'shimcha test yaratilsinmi?')) {
+        // Redirect to AI chat with topic context
+        window.location.href = '/ai_chat';
+    }
+}
+</script>
+{% endblock %}

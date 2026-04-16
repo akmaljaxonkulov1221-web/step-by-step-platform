@@ -1,0 +1,369 @@
+{% extends "base_bootstrap.html" %}
+
+{% block title %}Shaxsiy kabinet - {{ user.first_name }} {{ user.last_name }}{% endblock %}
+
+{% block page_title %}Shaxsiy kabinet{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Student Info Card -->
+    <div class="col-md-4 mb-4">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <i class="fas fa-user-graduate fa-3x mb-3"></i>
+                <h4>{{ user.first_name }} {{ user.last_name }}</h4>
+                <p class="mb-2"><strong>Guruh:</strong> {{ user.group.name }}</p>
+                <p class="mb-0"><strong>Login:</strong> {{ user.username }}</p>
+                <div class="mt-3">
+                    <a href="{{ url_for('groups_rating') }}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-trophy"></i> Guruh reytingi
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Group Student Rating -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-users"></i> Guruhdagi o'quvchilar reytingi</h5>
+                <small class="text-muted">{{ user.group.name }} guruh</small>
+            </div>
+            <div class="card-body">
+                {% if group_student_rankings %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>O'rin</th>
+                                    <th>Guruh</th>
+                                    <th>O'rtacha foiz</th>
+                                    <th>Ball</th>
+                                    <th>Testlar</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in group_student_rankings %}
+                                <tr class="{% if student.rank == 1 %}table-warning{% elif student.rank == 2 %}table-secondary{% elif student.rank == 3 %}table-info{% elif student.student.id == user.id %}table-primary{% endif %}">
+                                    <td>
+                                        {% if student.rank == 1 %}
+                                            <div class="rank-badge gold">
+                                                <i class="fas fa-trophy"></i> {{ student.rank }}
+                                            </div>
+                                        {% elif student.rank == 2 %}
+                                            <div class="rank-badge silver">
+                                                <i class="fas fa-medal"></i> {{ student.rank }}
+                                            </div>
+                                        {% elif student.rank == 3 %}
+                                            <div class="rank-badge bronze">
+                                                <i class="fas fa-medal"></i> {{ student.rank }}
+                                            </div>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ student.rank }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ student.student.group.name if student.student.group else 'Guruh yo\'q' }}</span>
+                                        {% if student.student.id == user.id %}
+                                            <br><small class="text-primary">Siz</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="height: 20px; min-width: 100px;">
+                                            <div class="progress-bar bg-{% if student.rank == 1 %}warning{% elif student.rank == 2 %}secondary{% elif student.rank == 3 %}info{% elif student.avg_percentage >= 70 %}success{% elif student.avg_percentage >= 50 %}warning{% else %}danger{% endif %}" 
+                                                 style="width: {{ student.avg_percentage }}%">
+                                                {{ "%.1f"|format(student.avg_percentage) }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if student.rank <= 3 %}warning{% else %}success{% endif %}">{{ student.total_points }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if student.rank <= 3 %}warning{% else %}info{% endif %}">{{ student.total_tests }}</span>
+                                    </td>
+                                    <td>
+                                        {% if student.rank == 1 %}
+                                            <span class="badge bg-warning">Chempion</span>
+                                        {% elif student.rank == 2 %}
+                                            <span class="badge bg-secondary">Vitse-chempion</span>
+                                        {% elif student.rank == 3 %}
+                                            <span class="badge bg-info">Bronza</span>
+                                        {% elif student.avg_percentage >= 90 %}
+                                            <span class="badge bg-success">A'lo</span>
+                                        {% elif student.avg_percentage >= 75 %}
+                                            <span class="badge bg-primary">Yaxshi</span>
+                                        {% elif student.avg_percentage >= 60 %}
+                                            <span class="badge bg-warning">Qoniqarli</span>
+                                        {% elif student.avg_percentage > 0 %}
+                                            <span class="badge bg-danger">Qoniqarsiz</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Test yo'q</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-users fa-2x mb-2"></i>
+                        <p>Guruhda hali test natijalari yo'q</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Test Results -->
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-chart-line"></i> So'nggi test natijalari</h5>
+                <div>
+                    <a href="{{ url_for('test_results') }}" class="btn btn-sm btn-outline-primary me-2">
+                        <i class="fas fa-user"></i> Mening natijalarim
+                    </a>
+                    <a href="{{ url_for('all_test_results') }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-users"></i> Barcha natijalar
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if recent_results %}
+                    {% for result in recent_results %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+                        <div>
+                            <strong>{{ result.test.title }}</strong>
+                            <br>
+                            <small class="text-muted">{{ result.taken_at.strftime('%d.%m.%Y %H:%M') }}</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge badge-score fs-6">
+                                {{ result.score }}/{{ result.total_questions }}
+                            </span>
+                            <br>
+                            <small class="text-muted">
+                                {{ "%.1f"|format((result.score / result.total_questions * 100)) }}%
+                            </small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">Hali test natijalari mavjud emas</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Certificates -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-certificate"></i> Sertifikatlar</h5>
+                <a href="{{ url_for('upload_certificate') }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus"></i> Yuklash
+                </a>
+            </div>
+            <div class="card-body">
+                {% if certificates %}
+                    {% for cert in certificates %}
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <h6>{{ cert.title }}</h6>
+                        <p class="mb-1">{{ cert.description }}</p>
+                        <small class="text-muted">
+                            <i class="fas fa-calendar"></i> {{ cert.issue_date.strftime('%d.%m.%Y') }}
+                        </small>
+                        {% if cert.file_path %}
+                        <br>
+                        <a href="{{ url_for('static', filename='uploads/certificates/' + cert.file_path) }}" 
+                           class="btn btn-sm btn-outline-info" target="_blank">
+                            <i class="fas fa-download"></i> Yuklab olish
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">Hali sertifikatlar mavjud emas</p>
+                    <div class="text-center">
+                        <a href="{{ url_for('upload_certificate') }}" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Birinchi sertifikatni yuklash
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Knowledge Levels -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar"></i> Fanlar bo'yicha bilim darajasi</h5>
+            </div>
+            <div class="card-body">
+                {% if knowledge_levels %}
+                    {% for kl in knowledge_levels %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <h6>{{ kl.subject.name }}</h6>
+                            <span class="badge badge-score">{{ kl.level }}%</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {{ kl.level }}%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);"
+                                 aria-valuenow="{{ kl.level }}" aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            <i class="fas fa-calendar"></i> {{ kl.last_updated.strftime('%d.%m.%Y') }}
+                        </small>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">Hali testlar topshirilmagan</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Group Rating -->
+    {% if group_students %}
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-trophy"></i> {{ user.group.name }} guruh reytingi</h5>
+                <a href="{{ url_for('group_rating', group_id=user.group.id) }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-chart-line"></i> Batafsil
+                </a>
+            </div>
+            <div class="card-body">
+                {% if group_students %}
+                    {% for student_stat in group_students[:5] %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 {% if student_stat.student.id == user.id %}bg-primary bg-opacity-10 rounded{% endif %}">
+                        <div>
+                            <strong>{{ student_stat.student.first_name }} {{ student_stat.student.last_name }}</strong>
+                            {% if student_stat.student.id == user.id %}
+                                <span class="badge bg-primary ms-2">Siz</span>
+                            {% endif %}
+                            <br>
+                            <small class="text-muted">
+                                <i class="fas fa-clipboard-list"></i> {{ student_stat.total_tests }} test
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge {% if loop.first %}bg-warning{% elif loop.index == 2 %}bg-secondary{% elif loop.index == 3 %}bg-danger{% else %}bg-info{% endif %}">
+                                {{ student_stat.total_score }} ball
+                            </span>
+                            <br>
+                            <small class="text-muted">{{ student_stat.avg_percentage }}%</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% if group_students|length > 5 %}
+                    <div class="text-center mt-2">
+                        <small class="text-muted">Jami {{ group_students|length }} o'quvchi</small>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <p class="text-muted text-center">Guruhda o'quvchilar mavjud emas</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Difficult Topics -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-exclamation-triangle"></i> Qiyin mavzular</h5>
+            </div>
+            <div class="card-body">
+                {% if difficult_topics %}
+                    {% for topic in difficult_topics %}
+                    <div class="difficult-topic mb-2 p-3">
+                        <h6>{{ topic.topic.title }}</h6>
+                        <small class="text-muted">{{ topic.topic.subject.name }}</small>
+                        <br>
+                        <small class="text-muted">
+                            <i class="fas fa-calendar"></i> {{ topic.marked_date.strftime('%d.%m.%Y') }}
+                        </small>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">Qiyin mavzular belgilanmagan</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-bolt"></i> Tezkor harakatlar</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('subjects') }}" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="fas fa-book-open fa-2x mb-2"></i>
+                            Fanlar
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('tests') }}" class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="fas fa-clipboard-check fa-2x mb-2"></i>
+                            Testlar
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('schedule') }}" class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="fas fa-calendar fa-2x mb-2"></i>
+                            Jadval
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('groups_rating') }}" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <i class="fas fa-trophy fa-2x mb-2"></i>
+                            Reyting
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.rank-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.rank-badge.gold {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    color: #333;
+}
+
+.rank-badge.silver {
+    background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+    color: #333;
+}
+
+.rank-badge.bronze {
+    background: linear-gradient(135deg, #cd7f32 0%, #e8a85c 100%);
+    color: white;
+}
+</style>
+{% endblock %}

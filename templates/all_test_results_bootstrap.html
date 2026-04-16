@@ -1,0 +1,146 @@
+{% extends "base_bootstrap.html" %}
+
+{% block title %}Barcha Test Natijalari{% endblock %}
+
+{% block page_title %}Barcha Test Natijalari{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar"></i> Barcha Test Natijalari
+                </h5>
+                <small class="text-muted">Barcha o'quvchilarning test natijalari va umumiy ballari</small>
+            </div>
+            <div class="card-body">
+                <!-- Student Totals Section -->
+                {% if student_totals %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-trophy"></i> O'quvchilarning umumiy ballari
+                        </h6>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Ism-Familiya</th>
+                                        <th>Guruh</th>
+                                        <th>Umumiy ball</th>
+                                        <th>Testlar soni</th>
+                                        <th>Javoblar</th>
+                                        <th>To'g'ri javoblar</th>
+                                        <th>Foiz</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for student_id, data in student_totals.items() %}
+                                    <tr>
+                                        <td><strong>{{ data.user.first_name }} {{ data.user.last_name }}</strong></td>
+                                        <td>{{ data.user.group.name if data.user.group else 'Guruh yo\'q' }}</td>
+                                        <td><span class="badge bg-success">{{ data.total_points }}</span></td>
+                                        <td>{{ data.total_tests }}</td>
+                                        <td>{{ data.total_questions }}</td>
+                                        <td>{{ data.total_correct }}</td>
+                                        <td>
+                                            {% if data.total_questions > 0 %}
+                                                {{ "%.1f"|format((data.total_correct / data.total_questions) * 100) }}%
+                                            {% else %}
+                                                0%
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Detailed Results Section -->
+                {% if all_results %}
+                <div class="row">
+                    <div class="col-12">
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-list"></i> Barcha test natijalari (tafsili)
+                        </h6>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Ism-Familiya</th>
+                                        <th>Guruh</th>
+                                        <th>Fan</th>
+                                        <th>Test turi</th>
+                                        <th>Sana</th>
+                                        <th>Javoblar</th>
+                                        <th>Foiz</th>
+                                        <th>Ball</th>
+                                        <th>Harakat</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for result, user, test, subject in all_results %}
+                                    <tr>
+                                        <td><strong>{{ user.first_name }} {{ user.last_name }}</strong></td>
+                                        <td>{{ user.group.name if user.group else 'Guruh yo\'q' }}</td>
+                                        <td>{{ subject.name if subject else 'Fan yo\'q' }}</td>
+                                        <td>
+                                            {% if test.test_type == 'dtm' %}
+                                                <span class="badge bg-danger">DTM</span>
+                                            {% elif test.test_type == 'daily' %}
+                                                <span class="badge bg-warning">Kundalik</span>
+                                            {% elif test.test_type == 'practice' %}
+                                                <span class="badge bg-success">Mashq</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ result.taken_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                        <td>{{ result.score }}/{{ result.total_questions }}</td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar bg-{{ 'success' if result.percentage >= 70 else 'warning' if result.percentage >= 50 else 'danger' }}" 
+                                                 style="width: {{ result.percentage }}%">
+                                                {{ "%.1f"|format(result.percentage) }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ result.points_earned or 0 }}</td>
+                                    <td>
+                                        <a href="{{ url_for('test_result', result_id=result.id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> Batafsil
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-chart-bar fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">Test natijalari mavjud emas</h4>
+                        <p class="text-muted">Hali hech kim test topshirmagan</p>
+                        <a href="{{ url_for('tests') }}" class="btn btn-primary">
+                            <i class="fas fa-play"></i> Testlarni ko'rish
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.progress {
+    min-width: 100px;
+}
+
+.progress-bar {
+    font-size: 0.75em;
+    font-weight: bold;
+}
+</style>
+{% endblock %}

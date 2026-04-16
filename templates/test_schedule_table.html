@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Testlar Jadvali{% endblock %}
+
+{% block page_title %}Testlar Jadvali{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header bg-gradient-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-alt"></i> Haftalik Testlar Jadvali
+                </h5>
+                <small class="text-white-50">Faqat bugungi test uchun ro'yxatdan o'tish va topshirish mumkin</small>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Eslatma:</strong> Har kuni faqat o'sha kunning testiga ro'yxatdan o'tishingiz va topshirishingiz mumkin. Kundalik testlar soat 22:00 gacha ochiq.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if subjects_count == 0 %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-book fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">Fanlar mavjud emas</h4>
+                        <p class="text-muted">Test jadvalini yaratish uchun avval fanlarni qo'shish kerak</p>
+                        {% if user.is_admin or user.is_group_leader %}
+                        <a href="{{ url_for('admin_subjects') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Fanlarni qo'shish
+                        </a>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            Fanlarni qo'shish uchun admin yoki guruh rahbari bilan bog'laning
+                        </div>
+                        {% endif %}
+                    </div>
+                {% elif schedule_data %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover schedule-table">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th class="text-center">Kun</th>
+                                    <th class="text-center">Sana</th>
+                                    <th class="text-center">Test nomi</th>
+                                    <th class="text-center">Fan</th>
+                                    <th class="text-center">Vaqt</th>
+                                    <th class="text-center">Savollar</th>
+                                    <th class="text-center">Holat</th>
+                                    <th class="text-center">Amallar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for date_str in sorted_dates %}
+                                    {% for test_data in schedule_data[date_str].tests %}
+                                    <tr class="{% if schedule_data[date_str].date == today %}table-primary{% elif schedule_data[date_str].date < today %}table-secondary{% endif %}">
+                                        <td class="text-center">
+                                            <strong>{{ schedule_data[date_str].day_name }}</strong>
+                                            {% if schedule_data[date_str].date == today %}
+                                                <br><span class="badge bg-primary">Bugun</span>
+                                            {% elif schedule_data[date_str].date < today %}
+                                                <br><span class="badge bg-secondary">O'tgan</span>
+                                            {% else %}
+                                                <br><span class="badge bg-info">Kelajak</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            {{ date_str }}
+                                        </td>
+                                        <td>
+                                            <strong>{{ test_data.test.title }}</strong>
+                                            {% if test_data.test.test_type == 'dtm' %}
+                                                <br><small class="text-danger">DTM Test</small>
+                                            {% else %}
+                                                <br><small class="text-warning">Kundalik Test</small>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-secondary">{{ test_data.test.subject.name if test_data.test.subject else 'Fan yo\'q' }}</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <small class="text-muted">
+                                                {{ test_data.test.start_time.strftime('%H:%M') }} - {{ test_data.test.end_time.strftime('%H:%M') }}
+                                            </small>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info">{{ test_data.test.questions|length }} savol</span>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if test_data.is_today and not test_data.is_expired %}
+                                                {% if test_data.is_registered %}
+                                                    {% if test_data.has_result %}
+                                                        <span class="badge bg-success">Topshirilgan</span>
+                                                    {% else %}
+                                                        <span class="badge bg-warning">Ro'yxatdan o'tilgan</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge bg-danger">Ro'yxatdan o'tmagan</span>
+                                                {% endif %}
+                                            {% elif test_data.is_expired %}
+                                                <span class="badge bg-secondary">Vaqt tugagan</span>
+                                            {% elif schedule_data[date_str].date > today %}
+                                                <span class="badge bg-info">Kutilmoqda</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">O'tgan kun</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            {% if test_data.is_available %}
+                                                {% if not test_data.is_registered %}
+                                                    <form method="POST" action="{{ url_for('register_for_test', test_id=test_data.test.id) }}" class="d-inline">
+                                                        <button type="submit" class="btn btn-primary btn-sm">
+                                                            <i class="fas fa-user-plus"></i> Ro'yxatdan o'tish
+                                                        </button>
+                                                    </form>
+                                                {% elif not test_data.has_result %}
+                                                    <a href="{{ url_for('take_test', test_id=test_data.test.id) }}" class="btn btn-success btn-sm">
+                                                        <i class="fas fa-play"></i> Testni boshlash
+                                                    </a>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">
+                                                    {% if test_data.is_expired %}
+                                                        <i class="fas fa-times-circle"></i> Vaqt tugagan
+                                                    {% elif schedule_data[date_str].date > today %}
+                                                        <i class="fas fa-hourglass-half"></i> Kutilmoqda
+                                                    {% else %}
+                                                        <i class="fas fa-calendar-times"></i> O'tgan kun
+                                                    {% endif %}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">Test jadvali mavjud emas</h4>
+                        <p class="text-muted">Kelgusi 7 kun ichida testlar rejalashtirilmagan</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.schedule-table {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.schedule-table th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+    border: 1px solid #dee2e6;
+}
+
+.schedule-table td {
+    border: 1px solid #dee2e6;
+    vertical-align: middle;
+}
+
+.schedule-table .table-primary {
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+.schedule-table .table-secondary {
+    background-color: rgba(108, 117, 125, 0.1);
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.btn-sm {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .schedule-table {
+        font-size: 0.8rem;
+    }
+    
+    .schedule-table th,
+    .schedule-table td {
+        padding: 0.5rem;
+    }
+    
+    .btn-sm {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.4rem;
+    }
+}
+</style>
+{% endblock %}

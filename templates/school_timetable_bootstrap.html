@@ -1,0 +1,364 @@
+{% extends "base_bootstrap.html" %}
+
+{% block title %}Dars Jadvali{% endblock %}
+
+{% block page_title %}Dars Jadvali{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-alt"></i> Litsey Dars Jadvali
+                    </h5>
+                    <small class="text-white-50">Haftalik dars jadvali</small>
+                </div>
+                {% if can_edit %}
+                <div>
+                    <button class="btn btn-light btn-sm" onclick="editTimetable()">
+                        <i class="fas fa-edit"></i> Tahrirlash
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover timetable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="text-center">Dars vaqti</th>
+                                <th class="text-center">Dushanba</th>
+                                <th class="text-center">Seshanba</th>
+                                <th class="text-center">Chorshanba</th>
+                                <th class="text-center">Payshanba</th>
+                                <th class="text-center">Juma</th>
+                                <th class="text-center">Shanba</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="time-slot text-center">8:30-9:15</td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="time-slot text-center">9:25-10:10</td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="time-slot text-center">10:25-11:10</td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="time-slot text-center">11:25-12:10</td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="time-slot text-center">12:40-13:25</td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="time-slot text-center">13:35-14:20</td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                                <td class="subject-cell">
+                                    <div class="subject-item empty">
+                                        <strong></strong>
+                                        <small class="d-block"></small>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timetable {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.timetable th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+    border: 1px solid #dee2e6;
+}
+
+.timetable td {
+    border: 1px solid #dee2e6;
+    vertical-align: middle;
+}
+
+.time-slot {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    border-right: 2px solid #dee2e6 !important;
+}
+
+.subject-cell {
+    padding: 8px;
+}
+
+.subject-item {
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.subject-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.subject-item strong {
+    display: block;
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+}
+
+.subject-item small {
+    opacity: 0.8;
+    font-size: 0.75rem;
+}
+
+/* Subject colors */
+.empty {
+    background: linear-gradient(135deg, #e9ecef, #f8f9fa);
+    color: #6c757d;
+    border: 2px dashed #dee2e6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .timetable {
+        font-size: 0.8rem;
+    }
+    
+    .subject-item {
+        padding: 6px;
+    }
+    
+    .subject-item strong {
+        font-size: 0.8rem;
+    }
+    
+    .subject-item small {
+        font-size: 0.7rem;
+    }
+}
+</style>
+{% endblock %}

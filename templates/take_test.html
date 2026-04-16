@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}{{ test.title }}{% endblock %}
+
+{% block page_title %}{{ test.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-alt"></i> {{ test.title }}
+                    </h5>
+                    <small class="text-muted">
+                        Test turi: {{ test.test_type }} | 
+                        Jami savollar: {{ questions|length }} ta
+                    </small>
+                </div>
+                <div class="card-body">
+                    {% if test_result %}
+                    <div class="alert alert-success">
+                        <h5>Test natijasi</h5>
+                        <p><strong>Ball:</strong> {{ test_result.score }}/{{ test_result.total_questions }}</p>
+                        <p><strong>Foiz:</strong> {{ "%.1f"|format(test_result.percentage) }}%</p>
+                        
+                        {% if test_result.correct_answers %}
+                        <h6>To'g'ri javoblar:</h6>
+                        <p>{{ test_result.correct_answers }}</p>
+                        
+                        <h6>Noto'g'ri javoblar:</h6>
+                        <p>{{ test_result.incorrect_answers }}</p>
+                        {% endif %}
+                        
+                        <div class="mt-3">
+                            <a href="{{ url_for('tests') }}" class="btn btn-primary">
+                                <i class="fas fa-arrow-left"></i> Testlarga qaytish
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <form method="POST" id="testForm">
+                        <input type="hidden" name="test_id" value="{{ test.id }}">
+                        <input type="hidden" name="start_time" id="start_time">
+                        
+                        <div class="progress mb-3">
+                            <div class="progress-bar" id="progressBar" style="width: 0%">0%</div>
+                        </div>
+                        
+                        <div id="questionsContainer">
+                            {% for question in questions %}
+                            <div class="question-container mb-4" data-question="{{ loop.index }}" style="display: none;">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">
+                                            Savol {{ loop.index }}/{{ questions|length }}
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="question-text">{{ question.question }}</p>
+                                        
+                                        <div class="options-container">
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="radio" 
+                                                       name="question_{{ question.id }}" 
+                                                       value="A" id="q{{ question.id }}_a" required>
+                                                <label class="form-check-label" for="q{{ question.id }}_a">
+                                                    A. {{ question.option_a }}
+                                                </label>
+                                            </div>
+                                            
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="radio" 
+                                                       name="question_{{ question.id }}" 
+                                                       value="B" id="q{{ question.id }}_b">
+                                                <label class="form-check-label" for="q{{ question.id }}_b">
+                                                    B. {{ question.option_b }}
+                                                </label>
+                                            </div>
+                                            
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="radio" 
+                                                       name="question_{{ question.id }}" 
+                                                       value="C" id="q{{ question.id }}_c">
+                                                <label class="form-check-label" for="q{{ question.id }}_c">
+                                                    C. {{ question.option_c }}
+                                                </label>
+                                            </div>
+                                            
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="radio" 
+                                                       name="question_{{ question.id }}" 
+                                                       value="D" id="q{{ question.id }}_d">
+                                                <label class="form-check-label" for="q{{ question.id }}_d">
+                                                    D. {{ question.option_d }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="navigation-buttons mt-3">
+                                            {% if loop.index > 1 %}
+                                            <button type="button" class="btn btn-secondary" onclick="previousQuestion({{ loop.index - 1 }})">
+                                                <i class="fas fa-arrow-left"></i> Oldingi
+                                            </button>
+                                            {% endif %}
+                                            
+                                            {% if loop.index < questions|length %}
+                                            <button type="button" class="btn btn-primary" onclick="nextQuestion({{ loop.index + 1 }})">
+                                                Keyingi <i class="fas fa-arrow-right"></i>
+                                            </button>
+                                            {% else %}
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="fas fa-check"></i> Testni tugatish
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <button type="button" class="btn btn-primary" id="startTestBtn" onclick="startTest()">
+                                <i class="fas fa-play"></i> Testni boshlash
+                            </button>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentQuestion = 0;
+let totalQuestions = {{ questions|length }};
+let startTime = null;
+
+function startTest() {
+    document.getElementById('startTestBtn').style.display = 'none';
+    document.getElementById('start_time').value = new Date().toISOString();
+    startTime = new Date();
+    
+    // Show first question
+    showQuestion(1);
+}
+
+function showQuestion(questionNum) {
+    // Hide all questions
+    document.querySelectorAll('.question-container').forEach(q => {
+        q.style.display = 'none';
+    });
+    
+    // Show current question
+    const currentQ = document.querySelector(`[data-question="${questionNum}"]`);
+    if (currentQ) {
+        currentQ.style.display = 'block';
+        currentQuestion = questionNum;
+        
+        // Update progress
+        const progress = (questionNum / totalQuestions) * 100;
+        const progressBar = document.getElementById('progressBar');
+        progressBar.style.width = progress + '%';
+        progressBar.textContent = Math.round(progress) + '%';
+    }
+}
+
+function nextQuestion(questionNum) {
+    if (questionNum <= totalQuestions) {
+        showQuestion(questionNum);
+    }
+}
+
+function previousQuestion(questionNum) {
+    if (questionNum >= 1) {
+        showQuestion(questionNum);
+    }
+}
+
+// Form validation
+document.getElementById('testForm').addEventListener('submit', function(e) {
+    const unansweredQuestions = [];
+    
+    {% for question in questions %}
+    const answered{{ question.id }} = document.querySelector('input[name="question_{{ question.id }}"]:checked');
+    if (!answered{{ question.id }}) {
+        unansweredQuestions.push({{ loop.index }});
+    }
+    {% endfor %}
+    
+    if (unansweredQuestions.length > 0) {
+        e.preventDefault();
+        alert(`Iltimos, quyidagi savollarga javob bering: ${unansweredQuestions.join(', ')}`);
+        return false;
+    }
+    
+    // Calculate total time
+    if (startTime) {
+        const totalTime = Math.floor((new Date() - startTime) / 1000);
+        const timeInput = document.createElement('input');
+        timeInput.type = 'hidden';
+        timeInput.name = 'total_time';
+        timeInput.value = totalTime;
+        this.appendChild(timeInput);
+    }
+    
+    // Show loading
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Natijalar hisoblanmoqda...';
+    submitBtn.disabled = true;
+});
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    showQuestion(1);
+});
+</script>
+{% endblock %}

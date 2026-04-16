@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}AI Assistant - ChatGPT Style{% endblock %}
+
+{% block page_title %}AI Assistant{% endblock %}
+
+{% block content %}
+<div class="container-fluid h-100">
+    <div class="row h-100">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 bg-light border-end">
+            <div class="p-3">
+                <h6 class="text-muted mb-3">Chat Tarixi</h6>
+                <button class="btn btn-sm btn-outline-primary w-100 mb-3" onclick="newChat()">
+                    <i class="fas fa-plus"></i> Yangi Chat
+                </button>
+                <div id="chat-history" class="small">
+                    {% if chat_history %}
+                        {% for chat in chat_history %}
+                        <div class="chat-history-item p-2 mb-2 border rounded cursor-pointer" onclick="loadChat({{ chat.id }})">
+                            <div class="fw-bold">{{ chat.question[:30] }}...</div>
+                            <small class="text-muted">{{ chat.created_at.strftime('%H:%M') if chat.created_at else 'Noma\'lum' }}</small>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">Chat tarixi yo'q</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Chat Area -->
+        <div class="col-md-9 col-lg-10">
+            <div class="d-flex flex-column h-100">
+                <!-- Header -->
+                <div class="bg-white border-bottom p-3">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <div class="bg-success rounded-circle p-2" style="width: 40px; height: 40px;">
+                                <i class="fas fa-robot text-white"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">AI Assistant</h5>
+                            <small class="text-success">Online</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Messages Area -->
+                <div class="flex-grow-1 overflow-auto p-3 bg-light" id="messages-area">
+                    {% if last_question and last_answer %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-end mb-2">
+                            <div class="bg-primary text-white rounded p-3" style="max-width: 70%;">
+                                <div class="small text-white-50 mb-1">Siz</div>
+                                <div>{{ last_question }}</div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-start mb-2">
+                            <div class="bg-white rounded p-3 border" style="max-width: 70%;">
+                                <div class="small text-muted mb-1">AI Assistant</div>
+                                <div>{{ last_answer }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if test_questions %}
+                    <div class="mt-4">
+                        <div class="bg-white rounded p-3 border">
+                            <h6 class="mb-3"><i class="fas fa-clipboard-list"></i> Yaratilgan Test Savollari</h6>
+                            {% for i, q in enumerate(test_questions, 1) %}
+                            <div class="mb-3 p-2 bg-light rounded">
+                                <div class="fw-bold">{{ i }}. {{ q.question }}</div>
+                                <div class="mt-2">
+                                    {% for option in q.options %}
+                                    <div class="small">
+                                        <span class="badge bg-secondary">{{ option[0] }}</span> {{ option[3:] }}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <div class="mt-1">
+                                    <small class="text-success">To'g'ri javob: <strong>{{ q.correct_answer }}</strong></small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            
+                            {% if test_id %}
+                            <a href="{{ url_for('student_take_test', test_id=test_id) }}" class="btn btn-success btn-sm">
+                                <i class="fas fa-play"></i> Testni boshlash
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Input Area -->
+                <div class="bg-white border-top p-3">
+                    <form method="POST" action="{{ url_for('ai_chat') }}" id="chat-form">
+                        <div class="input-group">
+                            <textarea class="form-control" name="question" rows="2" 
+                                      placeholder="Savolingizni yozing..." required></textarea>
+                            <button type="submit" class="btn btn-primary" id="send-btn">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="mt-2">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <select class="form-select form-select-sm" name="topic_id">
+                                        <option value="">Mavzuni tanlang</option>
+                                        {% for topic in topics %}
+                                        <option value="{{ topic.id }}">{{ topic.title }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="generate_test" id="generate_test">
+                                        <label class="form-check-label" for="generate_test">
+                                            Test yaratish (5 savol)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.h-100 {
+    min-height: calc(100vh - 56px);
+}
+.cursor-pointer {
+    cursor: pointer;
+}
+.cursor-pointer:hover {
+    background-color: #f8f9fa;
+}
+</style>
+
+<script>
+function newChat() {
+    document.getElementById('messages-area').innerHTML = '';
+    document.querySelector('textarea[name="question"]').value = '';
+    document.querySelector('textarea[name="question"]').focus();
+}
+
+function loadChat(chatId) {
+    // Load specific chat (implementation needed)
+    console.log('Loading chat:', chatId);
+}
+
+document.getElementById('chat-form').addEventListener('submit', function(e) {
+    const sendBtn = document.getElementById('send-btn');
+    const textarea = document.querySelector('textarea[name="question"]');
+    
+    // Add user message to chat
+    const messagesArea = document.getElementById('messages-area');
+    const userMessage = textarea.value;
+    
+    const userMsgDiv = document.createElement('div');
+    userMsgDiv.className = 'd-flex justify-content-end mb-2';
+    userMsgDiv.innerHTML = `
+        <div class="bg-primary text-white rounded p-3" style="max-width: 70%;">
+            <div class="small text-white-50 mb-1">Siz</div>
+            <div>${userMessage}</div>
+        </div>
+    `;
+    messagesArea.appendChild(userMsgDiv);
+    
+    // Show typing indicator
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'd-flex justify-content-start mb-2';
+    typingDiv.innerHTML = `
+        <div class="bg-white rounded p-3 border" style="max-width: 70%;">
+            <div class="small text-muted mb-1">AI Assistant</div>
+            <div><i class="fas fa-spinner fa-spin"></i> Yozilmoqda...</div>
+        </div>
+    `;
+    messagesArea.appendChild(typingDiv);
+    
+    // Scroll to bottom
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+    
+    // Disable send button
+    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    sendBtn.disabled = true;
+    
+    // Clear textarea
+    textarea.value = '';
+});
+
+// Auto-resize textarea
+document.querySelector('textarea[name="question"]').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = this.scrollHeight + 'px';
+});
+</script>
+{% endblock %}

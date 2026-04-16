@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}AI Bo'limi{% endblock %}
+
+{% block page_title %}AI Bo'limi{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="fas fa-robot"></i> AI Bo'limi</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6><i class="fas fa-comments"></i> AI Chat</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if error %}
+                                    <div class="alert alert-danger">{{ error }}</div>
+                                    {% endif %}
+                                    
+                                    {% if last_question and last_answer %}
+                                    <div class="mb-3">
+                                        <div class="alert alert-info">
+                                            <strong>Savol:</strong> {{ last_question }}
+                                        </div>
+                                        <div class="alert alert-success">
+                                            <strong>Javob:</strong> {{ last_answer }}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <form method="POST" action="{{ url_for('ai_chat') }}">
+                                        <div class="mb-3">
+                                            <label class="form-label">Savolingiz</label>
+                                            <textarea class="form-control" name="question" rows="3" 
+                                                      placeholder="Savolni yozing..." required></textarea>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Mavzu</label>
+                                            <select class="form-select" name="topic_id">
+                                                <option value="">Mavzuni tanlang</option>
+                                                {% for topic in topics %}
+                                                <option value="{{ topic.id }}">{{ topic.title }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="generate_test" id="generate_test">
+                                                <label class="form-check-label" for="generate_test">
+                                                    Test yaratish (5 savol)
+                                                </label>
+                                            </div>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-primary" id="submit-btn">
+                                            <i class="fas fa-paper-plane"></i> Savol yuborish
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6><i class="fas fa-history"></i> Chat Tarixi</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if chat_history %}
+                                        {% for chat in chat_history %}
+                                        <div class="mb-3 p-2 border rounded">
+                                            <small class="text-muted">{{ chat.created_at.strftime('%H:%M') if chat.created_at else 'Noma\'lum' }}</small>
+                                            <div class="fw-bold">{{ chat.question[:50] }}...</div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-muted">Hali chat tarixi yo'q</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="card mt-3">
+                                <div class="card-header">
+                                    <h6><i class="fas fa-info-circle"></i> AI Haqida</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="small text-muted">
+                                        AI sizning savollaringizga avtomatik javob beradi va har bir savoldan keyin 5 ta test savol yaratadi.
+                                    </p>
+                                    <div class="alert alert-info">
+                                        <small>
+                                            <i class="fas fa-info-circle"></i>
+                                            AI javoblari avtomatik ravishda yaratiladi. Uzr, ba'zi savollarga to'liq javob bera olmasligimiz mumkin.
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if test_questions %}
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-success text-white">
+                                    <h6><i class="fas fa-clipboard-list"></i> Yaratilgan Test Savollari</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% for i, q in enumerate(test_questions, 1) %}
+                                    <div class="mb-4 p-3 border rounded">
+                                        <h6>{{ i }}. {{ q.question }}</h6>
+                                        <div class="row">
+                                            {% for option in q.options %}
+                                            <div class="col-md-6 mb-2">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="question_{{ i }}" id="option_{{ i }}_{{ loop.index }}" value="{{ option[0] }}">
+                                                    <label class="form-check-label" for="option_{{ i }}_{{ loop.index }}">
+                                                        {{ option }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        <div class="mt-2">
+                                            <small class="text-success">To'g'ri javob: <strong>{{ q.correct_answer }}</strong></small>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                    
+                                    {% if test_id %}
+                                    <a href="{{ url_for('student_take_test', test_id=test_id) }}" class="btn btn-success">
+                                        <i class="fas fa-play"></i> Testni boshlash
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelector('form').addEventListener('submit', function(e) {
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Yuborilmoqda...';
+    submitBtn.disabled = true;
+    
+    // Re-enable after 3 seconds (simulated processing time)
+    setTimeout(() => {
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Savol yuborish';
+        submitBtn.disabled = false;
+    }, 3000);
+});
+</script>
+{% endblock %}
