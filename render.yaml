@@ -4,7 +4,7 @@ services:
     name: education-platform
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt && python restore_full_previous_state.py
+    buildCommand: pip install -r requirements.txt && python restore_clean_state.py
     startCommand: gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 app:app
     autoDeploy: true
     
