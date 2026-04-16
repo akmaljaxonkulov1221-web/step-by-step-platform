@@ -433,6 +433,18 @@ def register():
     groups = Group.query.filter(Group.name.in_(['101', '102', '103', '104', '105', '106', '107', '108'])).all()
     return render_template('register.html', groups=groups)
 
+@app.route('/dashboard')
+def dashboard():
+    if not session.get('logged_in', False):
+        return redirect(url_for('login'))
+    
+    if session.get('is_admin', False):
+        return redirect(url_for('admin_dashboard'))
+    elif session.get('is_group_leader', False):
+        return redirect(url_for('group_leader_dashboard'))
+    else:
+        return redirect(url_for('student_dashboard'))
+
 @app.route('/admin/dashboard')
 def admin_dashboard():
     if not session.get('logged_in', False) or not session.get('is_admin', False):
