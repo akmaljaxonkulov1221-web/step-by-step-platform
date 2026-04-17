@@ -263,7 +263,7 @@ def inject_user():
         def is_authenticated_method(self):
             return self.is_authenticated
     
-    return dict(current_user=CurrentUser())
+    return dict(current_user=CurrentUser(), datetime=datetime)
 
 # Routes
 @app.route('/')

@@ -250,7 +250,7 @@
                                             {% endif %}
                                         </td>
                                         <td>
-                                            {% set now = moment() %}
+                                            {% set now = datetime.now() %}
                                             {% if cert.expiry_date and cert.expiry_date < now %}
                                                 <span class="status-badge status-expired">Muddati o'tgan</span>
                                             {% else %}
