@@ -565,7 +565,7 @@ def admin_edit_student(student_id):
     
     return render_template('edit_student.html', student=student, groups=groups)
 
-@app.route('/admin/delete_student/<int:student_id>')
+@app.route('/admin/delete_student/<int:student_id>', methods=['POST'])
 def admin_delete_student(student_id):
     if not session.get('logged_in', False) or not session.get('is_admin', False):
         return redirect(url_for('login'))
