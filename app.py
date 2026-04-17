@@ -54,7 +54,6 @@ class User(db.Model):
     
     # Relationships
     group = db.relationship('Group', backref=db.backref('students', lazy=True, cascade='all, delete-orphan'), foreign_keys=[group_id])
-    certificates = db.relationship('Certificate', backref='student', lazy=True, cascade='all, delete-orphan')
     test_registrations = db.relationship('TestRegistration', backref='student', lazy=True, cascade='all, delete-orphan')
     test_results = db.relationship('TestResult', backref='student', lazy=True, cascade='all, delete-orphan')
     difficult_topics = db.relationship('DifficultTopic', backref='student', lazy=True, cascade='all, delete-orphan')
@@ -109,6 +108,23 @@ class AIChat(db.Model):
     
     user = db.relationship('User', backref=db.backref('ai_chats', lazy=True, cascade='all, delete-orphan'))
     topic = db.relationship('Topic', backref=db.backref('ai_chats', lazy=True))
+
+
+class Certificate(db.Model):
+    __tablename__ = 'certificate'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    certificate_number = db.Column(db.String(50), unique=True, nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    issue_date = db.Column(db.DateTime, nullable=False)
+    expiry_date = db.Column(db.DateTime)
+    file_path = db.Column(db.String(500))
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, nullable=False)
+    
+    user = db.relationship('User', backref=db.backref('certificates', lazy=True, cascade='all, delete-orphan'))
 
 
 class Test(db.Model):
@@ -174,16 +190,6 @@ class Schedule(db.Model):
     end_time = db.Column(db.Time, nullable=False)
 
 
-class Certificate(db.Model):
-    __tablename__ = 'certificate'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    description = db.Column(db.Text)
-    level = db.Column(db.String(10), nullable=False)  # B1, B2, C1, etc.
-    points = db.Column(db.Integer, default=10)
-    issued_date = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 
 class DifficultTopic(db.Model):
@@ -478,6 +484,12 @@ def admin_dashboard():
                          weekly_tests=weekly_tests,
                          recent_results=recent_results)
 
+@app.route('/students')
+def students():
+    if not session.get('logged_in', False) or not session.get('is_admin', False):
+        return redirect(url_for('login'))
+    return redirect(url_for('admin_students'))
+
 @app.route('/admin/students')
 def admin_students():
     if not session.get('logged_in', False) or not session.get('is_admin', False):
@@ -591,6 +603,16 @@ def admin_delete_student(student_id):
             if str(student_id) in current_app._cached_user_data:
                 del current_app._cached_user_data[str(student_id)]
         
+        # 9. Mark student as deleted in persistent data
+        try:
+            import sys
+            import os
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            from restore_persistent_state import mark_student_deleted
+            mark_student_deleted(student_id, student.username, student.first_name, student.last_name)
+        except Exception as e:
+            app.logger.error(f"Failed to mark student as deleted in persistent data: {e}")
+        
         flash("O'quvchi ma'lumotlari to'liq o'chirildi!", 'success')
         
     except Exception as e:
@@ -599,6 +621,106 @@ def admin_delete_student(student_id):
         current_app.logger.error(f"Error deleting student {student_id}: {str(e)}")
     
     return redirect(url_for('admin_students'))
+
+
+@app.route('/admin/certificates')
+def admin_certificates():
+    if not session.get('logged_in', False) or not session.get('is_admin', False):
+        return redirect(url_for('login'))
+    
+    certificates = Certificate.query.all()
+    students = User.query.filter_by(is_admin=False, is_group_leader=False).all()
+    
+    return render_template('admin_certificates.html', certificates=certificates, students=students)
+
+
+@app.route('/admin/upload_certificate', methods=['POST'])
+def admin_upload_certificate():
+    if not session.get('logged_in', False) or not session.get('is_admin', False):
+        return redirect(url_for('login'))
+    
+    try:
+        user_id = request.form.get('user_id')
+        certificate_number = request.form.get('certificate_number')
+        title = request.form.get('title')
+        description = request.form.get('description')
+        issue_date_str = request.form.get('issue_date')
+        expiry_date_str = request.form.get('expiry_date')
+        
+        # Handle file upload
+        file = request.files.get('certificate_file')
+        file_path = None
+        
+        if file and file.filename:
+            # Create secure filename
+            filename = secure_filename(file.filename)
+            # Add timestamp to make it unique
+            import time
+            timestamp = int(time.time())
+            filename = f"{timestamp}_{filename}"
+            
+            # Save file
+            upload_folder = os.path.join(app.root_path, 'uploads', 'certificates')
+            os.makedirs(upload_folder, exist_ok=True)
+            file_path = os.path.join('uploads', 'certificates', filename)
+            file.save(os.path.join(app.root_path, file_path))
+        
+        # Parse dates
+        issue_date = datetime.strptime(issue_date_str, '%Y-%m-%d') if issue_date_str else datetime.now()
+        expiry_date = datetime.strptime(expiry_date_str, '%Y-%m-%d') if expiry_date_str else None
+        
+        # Create certificate
+        certificate = Certificate(
+            user_id=user_id,
+            certificate_number=certificate_number,
+            title=title,
+            description=description,
+            issue_date=issue_date,
+            expiry_date=expiry_date,
+            file_path=file_path,
+            created_at=datetime.now()
+        )
+        
+        db.session.add(certificate)
+        db.session.commit()
+        
+        flash('Sertifikat muvaffaqiyatli yuklandi!', 'success')
+        return redirect(url_for('admin_certificates'))
+        
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f'Certificate upload error: {str(e)}')
+        flash('Sertifikat yuklashda xatolik yuz berdi!', 'error')
+        return redirect(url_for('admin_certificates'))
+
+
+@app.route('/admin/delete_certificate/<int:certificate_id>', methods=['POST'])
+def admin_delete_certificate(certificate_id):
+    if not session.get('logged_in', False) or not session.get('is_admin', False):
+        return redirect(url_for('login'))
+    
+    try:
+        certificate = Certificate.query.get_or_404(certificate_id)
+        
+        # Delete file if exists
+        if certificate.file_path:
+            file_full_path = os.path.join(app.root_path, certificate.file_path)
+            if os.path.exists(file_full_path):
+                os.remove(file_full_path)
+        
+        # Delete certificate
+        db.session.delete(certificate)
+        db.session.commit()
+        
+        flash('Sertifikat muvaffaqiyatli o\'chirildi!', 'success')
+        return redirect(url_for('admin_certificates'))
+        
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f'Certificate deletion error: {str(e)}')
+        flash('Sertifikat o\'chirishda xatolik yuz berdi!', 'error')
+        return redirect(url_for('admin_certificates'))
+
 
 @app.route('/admin/groups')
 def admin_groups():
