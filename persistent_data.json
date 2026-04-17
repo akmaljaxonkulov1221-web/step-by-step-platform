@@ -1,7 +1,8 @@
 {
   "deleted_students": [
-    "test.student.deletion2_Test_Student2"
+    "test.student.deletion2_Test_Student2",
+    "test.student.management_Test_Student"
   ],
   "admin_changes": {},
-  "last_updated": "2026-04-17T07:04:02.636893"
+  "last_updated": "2026-04-17T07:16:41.372460"
 }
