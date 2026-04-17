@@ -809,7 +809,7 @@ def admin_edit_group(group_id):
     
     return render_template('edit_group.html', group=group)
 
-@app.route('/admin/delete_group/<int:group_id>')
+@app.route('/admin/delete_group/<int:group_id>', methods=['POST'])
 def admin_delete_group(group_id):
     if not session.get('logged_in', False) or not session.get('is_admin', False):
         return redirect(url_for('login'))
@@ -874,7 +874,7 @@ def admin_edit_subject(subject_id):
     
     return render_template('edit_subject.html', subject=subject)
 
-@app.route('/admin/delete_subject/<int:subject_id>')
+@app.route('/admin/delete_subject/<int:subject_id>', methods=['POST'])
 def admin_delete_subject(subject_id):
     if not session.get('logged_in', False) or not session.get('is_admin', False):
         return redirect(url_for('login'))
@@ -1155,7 +1155,7 @@ def admin_edit_test(test_id):
     
     return render_template('edit_test.html', test=test, subjects=subjects)
 
-@app.route('/admin/delete_test/<int:test_id>')
+@app.route('/admin/delete_test/<int:test_id>', methods=['POST'])
 def admin_delete_test(test_id):
     if not session.get('logged_in', False) or not session.get('is_admin', False):
         return redirect(url_for('login'))
@@ -1223,7 +1223,7 @@ def admin_edit_question(question_id):
     
     return render_template('edit_question.html', question=question, test=test)
 
-@app.route('/admin/delete_question/<int:question_id>')
+@app.route('/admin/delete_question/<int:question_id>', methods=['POST'])
 def admin_delete_question(question_id):
     if not session.get('logged_in', False) or not session.get('is_admin', False):
         return redirect(url_for('login'))
