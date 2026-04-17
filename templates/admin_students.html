@@ -165,15 +165,39 @@
 {% endfor %}
 
 <script>
-function deleteStudent(studentId) {
-    if (confirm('Rostdan ham ushbu o\'quvchini o\'chirmoqchimisiz? Barcha ma\'lumotlari (test natijalari, sertifikatlar va h.k.) o\'chiriladi!')) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/admin/delete_student/' + studentId;
-        document.body.appendChild(form);
-        form.submit();
+// Clear cache on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Clear any cached data
+    if (performance.navigation.type === 1) {
+        // Page is being refreshed, clear cache
+        localStorage.clear();
+        sessionStorage.clear();
     }
-}
+});
+
+// Handle modal events
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all modals
+    var modals = document.querySelectorAll('.modal');
+    modals.forEach(function(modal) {
+        new bootstrap.Modal(modal);
+    });
+});
+
+// Handle form submissions
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners to all forms
+    var forms = document.querySelectorAll('form');
+    forms.forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            // Clear any previous errors
+            var alerts = document.querySelectorAll('.alert-danger');
+            alerts.forEach(function(alert) {
+                alert.remove();
+            });
+        });
+    });
+});
 </script>
 
 {% endblock %}
