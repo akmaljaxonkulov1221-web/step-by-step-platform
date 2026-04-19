@@ -7,7 +7,9 @@
 - **Student Dashboard** - Personal learning space
 - **AI Assistant** - ChatGPT integration
 - **Test System** - Automated testing
-- **PDF Upload** - File management
+- **PDF Upload** - File management for subjects, topics, and tests
+- **PDF Parsing** - Automatic test generation from PDF files
+- **Weekly Test Schedule** - 7-day automated test scheduling
 - **Real-time Updates** - Dynamic content
 
 ### Database Status:
@@ -22,16 +24,25 @@
 ```bash
 # Push to GitHub
 git add .
-git commit -m "Ready for deployment - clean database"
+git commit -m "Ready for deployment - with PDF features"
 git push origin main
 
 # Render.com Settings:
-# Build Command: pip install -r requirements.txt
+# Build Command: pip install -r requirements.txt && python migrate_database_new_features.py
 # Start Command: gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 app:app
 # Environment Variables:
 # FLASK_ENV=production
 # SECRET_KEY=your-secret-key-here
+# FLASK_APP=app.py
+# DATABASE_URL=sqlite:///education_complete.db
+# PYTHON_VERSION=3.12.0
 ```
+
+# Render Configuration Files:
+- render.yaml - Complete configuration
+- requirements.txt - All dependencies including PDF libraries
+- Dockerfile - Production-ready container
+- .env.example - Environment variables template
 
 ### 2. Heroku
 ```bash
@@ -80,9 +91,15 @@ OPENAI_API_KEY=your-openai-api-key
 ```
 step-by-step/
 |-- app.py                 # Main application
-|-- requirements.txt       # Dependencies
-|-- templates/             # All HTML templates
-|-- uploads/              # PDF uploads (create if needed)
+|-- requirements.txt       # Dependencies (includes PDF libraries)
+|-- render.yaml           # Render configuration
+|-- Dockerfile            # Docker configuration
+|-- docker-compose.yml    # Docker Compose configuration
+|-- .env.example          # Environment variables template
+|-- pdf_parser.py         # PDF parsing functionality
+|-- migrate_database_new_features.py # Database migration
+|-- templates/            # All HTML templates
+|-- uploads/pdfs/         # PDF uploads (auto-created)
 |-- education_complete.db # SQLite database (auto-created)
 ```
 
@@ -95,14 +112,21 @@ step-by-step/
 
 ### 2. Create Content:
 1. Go to "Fanlar" (Subjects)
-2. Add new subjects
+2. Add new subjects with PDF files
 3. Add topics with PDF files
-4. Create tests
+4. Create tests with PDF files
+5. Use PDF parsing to auto-generate test questions
 
 ### 3. Add Students:
 1. Go to "Studentlar" (Students)
 2. Add new students
 3. Assign to groups
+
+### 4. Test PDF Features:
+1. Upload PDF files to subjects, topics, and tests
+2. Test PDF parsing functionality
+3. Verify weekly test schedule system
+4. Check student test interface
 
 ## Security Notes:
 

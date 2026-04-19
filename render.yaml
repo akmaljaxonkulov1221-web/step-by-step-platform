@@ -4,7 +4,7 @@ services:
     name: education-platform
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt && python restore_persistent_state.py
+    buildCommand: pip install -r requirements.txt && python migrate_database_new_features.py
     startCommand: gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 app:app
     autoDeploy: true
     
@@ -15,7 +15,11 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: PYTHON_VERSION
-        value: 3.9.0
+        value: 3.12.0
+      - key: FLASK_APP
+        value: app.py
+      - key: DATABASE_URL
+        value: sqlite:///education_complete.db
     
     # Health check
     healthCheckPath: /health
@@ -25,10 +29,18 @@ services:
       name: education-platform-disk
       mountPath: /app
       sizeGB: 10
+    
+    # Build hooks for PDF processing
+    buildHooks:
+      preBuild:
+        - pip install --upgrade pip
+      postBuild:
+        - mkdir -p uploads/pdfs
+        - chmod 755 uploads uploads/pdfs
 
-# Addons for database
-databases:
-  - name: education-platform-db
-    databaseName: education_platform
-    user: education_platform_user
-    plan: free
+# Addons for database (optional - can use SQLite for free tier)
+# databases:
+#   - name: education-platform-db
+#     databaseName: education_platform
+#     user: education_platform_user
+#     plan: free

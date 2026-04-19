@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Haftalik testlar jadvali{% endblock %}
+
+{% block page_title %}Haftalik testlar jadvali{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-calendar-week"></i> Haftalik testlar jadvali</h5>
+                    <span class="badge bg-info">{{ week_start.strftime('%d.%m.%Y') }} - {{ (week_start + timedelta(days=6)).strftime('%d.%m.%Y') }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Kun tartib raqami</th>
+                                    <th>Kun nomi</th>
+                                    <th>Sana</th>
+                                    <th>Test nomi</th>
+                                    <th>Holati</th>
+                                    <th>Natija</th>
+                                    <th>Amallar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for day in schedule_data %}
+                                <tr class="{% if day.date == today %}table-primary{% endif %}">
+                                    <td><strong>{{ day.day_number }}</strong></td>
+                                    <td>{{ day.day_name }}</td>
+                                    <td>{{ day.date_str }}</td>
+                                    <td>
+                                        {% if day.test %}
+                                            <div>
+                                                <strong>{{ day.test.title }}</strong><br>
+                                                <small class="text-muted">{{ day.test.subject.name }}</small>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">Test yo'q</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if day.status == 'Bajarilmagan' %}
+                                            <span class="badge bg-warning">Bajarilmagan</span>
+                                        {% elif day.status == 'Bajarilgan' %}
+                                            <span class="badge bg-success">Bajarilgan</span>
+                                        {% elif 'O\'tkazib yuborilgan' in day.status %}
+                                            <span class="badge bg-danger">O'tkazib yuborilgan</span>
+                                        {% else %}
+                                            <span class="badge bg-info">{{ day.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if day.result %}
+                                            <div>
+                                                <strong>{{ day.result.score }}/{{ day.result.total_questions }}</strong><br>
+                                                <small class="text-success">{{ "%.1f"|format(day.result.percentage) }}%</small>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if day.test and day.is_available %}
+                                            {% if not day.result %}
+                                            <a href="{{ url_for('take_test', test_id=day.test.id) }}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-play"></i> Boshlash
+                                            </a>
+                                            {% else %}
+                                            <a href="{{ url_for('test_result', result_id=day.result.id) }}" class="btn btn-sm btn-outline-info">
+                                                <i class="fas fa-eye"></i> Natijani ko'rish
+                                            </a>
+                                            {% endif %}
+                                        {% elif day.test and day.date < today and not day.result %}
+                                            <span class="text-muted">Test vaqti o'tgan</span>
+                                        {% elif day.test and day.date > today %}
+                                            <span class="text-muted">Kutilmoqda</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle"></i> Ma'lumot:</h6>
+                            <ul class="mb-0">
+                                <li>Har kuni faqat bitta test ochiladi</li>
+                                <li>Test faqat belgilangan vaqtda ishlashi mumkin</li>
+                                <li>Bugungi test <strong>ajratilgan</strong> qatorda ko'rsatilgan</li>
+                                <li>Test natijalari avtomatik saqlanadi</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -44,10 +44,10 @@
                                             {% endif %}
                                         </td>
                                         <td>
-                                            <button class="btn btn-sm btn-warning" disabled>
+                                            <a href="#" class="btn btn-sm btn-warning" onclick="editTopic({{ topic.id }}); return false;">
                                                 <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-danger" disabled onclick="return confirm('Rostdan ham o\'chirmoqchimisiz?')">
+                                            </a>
+                                            <button class="btn btn-sm btn-danger" onclick="deleteTopic({{ topic.id }}); return false;">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </td>
@@ -68,4 +68,83 @@
         </div>
     </div>
 </div>
+
+<script>
+function editTopic(topicId) {
+    // Get topic details via API
+    fetch(`/api/topic/${topicId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Xatolik: ' + data.error);
+                return;
+            }
+            
+            // Create edit form
+            const title = prompt('Mavzu sarlavhasi:', data.topic.title);
+            if (title === null) return;
+            
+            const content = prompt('Mavzu mazmuni:', data.topic.content);
+            if (content === null) return;
+            
+            const videoUrl = prompt('Video URL (ixtiyoriy):', data.topic.video_url || '');
+            if (videoUrl === null) return;
+            
+            // Submit edit via API
+            fetch('/api/edit_topic', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    topic_id: topicId,
+                    title: title,
+                    content: content,
+                    video_url: videoUrl
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Mavzu muvaffaqiyatli yangilandi!');
+                    location.reload();
+                } else {
+                    alert('Xatolik: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Mavzuni yangilashda xatolik yuz berdi!');
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Mavzu ma\'lumotlarini olishda xatolik!');
+        });
+}
+
+function deleteTopic(topicId) {
+    if (!confirm('Rostdan ham ushbu mavzuni o\'chirmoqchimisiz?')) {
+        return;
+    }
+    
+    fetch(`/api/topic/${topicId}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Mavzu muvaffaqiyatli o\'chirildi!');
+            location.reload();
+        } else {
+            alert('Xatolik: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Mavzuni o\'chirishda xatolik yuz berdi!');
+    });
+}
+</script>
+
 {% endblock %}

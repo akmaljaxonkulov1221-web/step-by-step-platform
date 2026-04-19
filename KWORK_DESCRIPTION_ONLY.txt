@@ -1,0 +1,38 @@
+I will create a comprehensive education platform with user authentication, dashboard, and full admin panel. This is a complete web application for managing students, tests, and educational content.
+
+Features Included:
+1. User Authentication System: User registration and login, role-based access control (Admin, Student, Group Leader), password reset functionality, session management, secure authentication with Flask.
+2. Student Dashboard: Personal dashboard for students, test results and progress tracking, schedule view, certificate management, profile management.
+3. Admin Panel: Complete admin dashboard, student management (CRUD operations), group management, subject and topic management, test creation and management, certificate upload and management, statistics and analytics, user management.
+4. Test System: Multiple choice test creation, test scheduling, test results tracking, question management, automated scoring.
+5. Certificate System: Certificate upload with file management, certificate number generation, certificate tracking, PDF support.
+6. Data Management: Persistent data storage, database backup and restore, data export functionality, search and filter capabilities.
+
+Technical Stack:
+- Backend: Flask (Python)
+- Database: SQLAlchemy with MySQL/PostgreSQL
+- Frontend: Bootstrap 5, HTML5, CSS3
+- JavaScript: Vanilla JS
+- Authentication: Flask-Login
+- File Upload: Werkzeug
+- Styling: Bootstrap 5 + Custom CSS
+
+Key Features: Responsive design for all devices, modern UI/UX with Bootstrap 5, secure authentication system, real-time data updates, file upload capabilities, search and filter functionality, export capabilities, modal-based interactions, progress tracking, statistics dashboard.
+
+Pages Included: Login/Register page, Admin Dashboard, Student Dashboard, Student Management, Test Management, Certificate Management, Group Management, Subject Management, Schedule Management, Profile Management.
+
+Database Models: Users (Admin, Students, Group Leaders), Groups, Subjects, Topics, Tests, Questions, Test Results, Certificates, Schedules, Test Registrations.
+
+Security Features: Password hashing, session management, CSRF protection, input validation, SQL injection prevention, file upload security.
+
+Performance Features: Database optimization, caching mechanisms, efficient queries, pagination for large datasets.
+
+Additional Features: Multi-language support (Uzbek), Dark/Light theme support, mobile responsive, accessibility features, SEO optimized, fast loading times.
+
+What You Get: Complete source code, database schema, installation instructions, user documentation, admin guide, deployment guide, 30 days support, bug fixes, minor customizations.
+
+Installation: Simple setup process, database initialization scripts, configuration files, environment setup guide.
+
+Timeline: Development: 5-7 days, Testing: 1-2 days, Deployment: 1 day, Total: 7-10 days.
+
+This is a complete, production-ready education platform that can be used immediately after delivery. All features are fully functional and tested.

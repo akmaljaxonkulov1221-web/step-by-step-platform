@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}PDF dan test yaratish{% endblock %}
+
+{% block page_title %}PDF dan test yaratish{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-file-pdf"></i> PDF dan test yaratish</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Fan:</strong> {{ subject.name }}
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Tizim {{ subject.pdf_filename }} faylidan savollarni avtomatik ajratib oladi.</strong><br>
+                        Agar savollar to'g'ri ajratilmasa, ularni qo'lda tahrirlashingiz mumkin.
+                    </div>
+                    
+                    <div class="text-center">
+                        <p>Bu jarayonni boshlashni xohlaysizmi?</p>
+                        <form method="POST">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-play"></i> PDF ni tahlil qilish
+                            </button>
+                            <a href="{{ url_for('admin_subjects') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Orqaga
+                            </a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

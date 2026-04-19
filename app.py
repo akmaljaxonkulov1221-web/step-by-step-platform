@@ -2,9 +2,10 @@ import os
 import sys
 import json
 import shutil
-from flask import Flask, render_template, request, redirect, url_for, session, flash, current_app, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash, current_app, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta, date
 import random
 import string
@@ -35,7 +36,58 @@ app.config['SECRET_KEY'] = 'super-secret-key-for-sessions-to-work'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///education_complete.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# PDF upload configuration
+app.config['UPLOAD_FOLDER'] = 'uploads/pdfs'
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+ALLOWED_EXTENSIONS = {'pdf'}
+
 db = SQLAlchemy(app)
+
+# Helper functions for file handling
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def ensure_upload_directory():
+    upload_dir = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
+    if not os.path.exists(upload_dir):
+        os.makedirs(upload_dir)
+    return upload_dir
+
+def create_weekly_schedule_for_group(group_id, week_start):
+    """Create weekly test schedule for a group"""
+    # Check if schedule already exists for this week
+    existing_schedule = WeeklyTestSchedule.query.filter_by(
+        group_id=group_id,
+        week_start_date=week_start
+    ).first()
+    
+    if existing_schedule:
+        return  # Schedule already exists
+    
+    # Get available tests for this group
+    available_tests = Test.query.filter_by(test_type='daily', is_active=True).all()
+    
+    if not available_tests:
+        return  # No tests available
+    
+    # Select 7 tests (one for each day)
+    selected_tests = available_tests[:7]  # Take first 7 tests
+    
+    # Create schedule for each day
+    for day_num in range(1, 8):
+        if day_num <= len(selected_tests):
+            test = selected_tests[day_num - 1]
+            
+            schedule = WeeklyTestSchedule(
+                group_id=group_id,
+                subject_id=test.subject_id,
+                test_id=test.id,
+                day_number=day_num,
+                week_start_date=week_start
+            )
+            db.session.add(schedule)
+    
+    db.session.commit()
 
 # Database Models
 class User(db.Model):
@@ -77,6 +129,8 @@ class Subject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False, index=True)
     description = db.Column(db.Text)
+    pdf_file_path = db.Column(db.String(500))  # PDF fayl yo'li
+    pdf_filename = db.Column(db.String(255))   # PDF fayl nomi
 
     
     # Relationships
@@ -92,6 +146,8 @@ class Topic(db.Model):
     content = db.Column(db.Text)
     video_url = db.Column(db.String(500))
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
+    pdf_file_path = db.Column(db.String(500))  # PDF fayl yo'li
+    pdf_filename = db.Column(db.String(255))   # PDF fayl nomi
     
     # Relationships
     marked_by = db.relationship('DifficultTopic', backref='topic', lazy=True, cascade='all, delete-orphan')
@@ -139,7 +195,8 @@ class Test(db.Model):
     end_time = db.Column(db.Time, nullable=False)
     duration_minutes = db.Column(db.Integer, default=60)
     is_active = db.Column(db.Boolean, default=True)
-
+    pdf_file_path = db.Column(db.String(500))  # PDF fayl yo'li
+    pdf_filename = db.Column(db.String(255))   # PDF fayl nomi
     
     # Relationships
     questions = db.relationship('Question', backref='test', lazy=True, cascade='all, delete-orphan')
@@ -188,6 +245,23 @@ class Schedule(db.Model):
     group_id = db.Column(db.Integer, db.ForeignKey('group.id'), nullable=False)
     start_time = db.Column(db.Time, nullable=False)
     end_time = db.Column(db.Time, nullable=False)
+
+class WeeklyTestSchedule(db.Model):
+    __tablename__ = 'weekly_test_schedule'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('group.id'), nullable=False)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
+    test_id = db.Column(db.Integer, db.ForeignKey('test.id'), nullable=False)
+    day_number = db.Column(db.Integer, nullable=False)  # 1-7 (hafta kunlari)
+    week_start_date = db.Column(db.Date, nullable=False)  # Hafta boshlanishi sanasi
+    is_completed = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    group = db.relationship('Group', backref='weekly_schedules')
+    subject = db.relationship('Subject', backref='weekly_schedules')
+    test = db.relationship('Test', backref='weekly_schedules')
 
 
 
@@ -850,8 +924,35 @@ def admin_add_subject():
     name = request.form.get('name', '').strip()
     description = request.form.get('description', '').strip()
     
+    # Handle PDF file upload
+    pdf_file = request.files.get('pdf_file')
+    pdf_file_path = None
+    pdf_filename = None
+    
+    if pdf_file and pdf_file.filename != '':
+        if allowed_file(pdf_file.filename):
+            filename = secure_filename(pdf_file.filename)
+            # Add timestamp to make filename unique
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"{timestamp}_{filename}"
+            
+            upload_dir = ensure_upload_directory()
+            file_path = os.path.join(upload_dir, filename)
+            pdf_file.save(file_path)
+            
+            pdf_file_path = file_path
+            pdf_filename = filename
+        else:
+            flash("Faqat PDF fayllariga ruxsat beriladi!", 'error')
+            return redirect(url_for('admin_subjects'))
+    
     # Create new subject
-    new_subject = Subject(name=name, description=description)
+    new_subject = Subject(
+        name=name, 
+        description=description,
+        pdf_file_path=pdf_file_path,
+        pdf_filename=pdf_filename
+    )
     db.session.add(new_subject)
     db.session.commit()
     
@@ -868,11 +969,158 @@ def admin_edit_subject(subject_id):
     if request.method == 'POST':
         subject.name = request.form.get('name', '').strip()
         subject.description = request.form.get('description', '').strip()
+        
+        # Handle PDF file upload
+        pdf_file = request.files.get('pdf_file')
+        if pdf_file and pdf_file.filename != '':
+            if allowed_file(pdf_file.filename):
+                # Delete old PDF if exists
+                if subject.pdf_file_path and os.path.exists(subject.pdf_file_path):
+                    os.remove(subject.pdf_file_path)
+                
+                filename = secure_filename(pdf_file.filename)
+                # Add timestamp to make filename unique
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = f"{timestamp}_{filename}"
+                
+                upload_dir = ensure_upload_directory()
+                file_path = os.path.join(upload_dir, filename)
+                pdf_file.save(file_path)
+                
+                subject.pdf_file_path = file_path
+                subject.pdf_filename = filename
+            else:
+                flash("Faqat PDF fayllariga ruxsat beriladi!", 'error')
+                return redirect(url_for('admin_subjects'))
+        
         db.session.commit()
         flash("Fan ma'lumotlari yangilandi!", 'success')
         return redirect(url_for('admin_subjects'))
     
     return render_template('edit_subject.html', subject=subject)
+
+@app.route('/uploads/pdfs/<filename>')
+def download_pdf(filename):
+    """Serve PDF files for download/viewing"""
+    if not session.get('logged_in', False):
+        return redirect(url_for('login'))
+    
+    upload_dir = ensure_upload_directory()
+    file_path = os.path.join(upload_dir, filename)
+    
+    if os.path.exists(file_path):
+        return send_file(file_path, as_attachment=False, mimetype='application/pdf')
+    else:
+        flash("PDF fayl topilmadi!", 'error')
+        return redirect(url_for('student_dashboard'))
+
+@app.route('/admin/parse_pdf/<int:subject_id>', methods=['GET', 'POST'])
+def admin_parse_pdf(subject_id):
+    """Parse PDF and extract questions for test generation"""
+    if not session.get('logged_in', False) or not session.get('is_admin', False):
+        return redirect(url_for('login'))
+    
+    subject = Subject.query.get_or_404(subject_id)
+    
+    if not subject.pdf_file_path or not os.path.exists(subject.pdf_file_path):
+        flash("Bu fanga PDF fayl biriktirilmagan!", 'error')
+        return redirect(url_for('admin_subjects'))
+    
+    if request.method == 'POST':
+        # Import PDF parser
+        from pdf_parser import PDFQuestionExtractor
+        
+        extractor = PDFQuestionExtractor()
+        questions = extractor.parse_pdf_file(subject.pdf_file_path)
+        
+        if not questions:
+            flash("PDF dan savollarni ajratib bo'lmadi!", 'error')
+            return redirect(url_for('admin_subjects'))
+        
+        # Store questions in session for review
+        session['parsed_questions'] = questions
+        session['subject_id'] = subject_id
+        
+        return render_template('review_parsed_questions.html', 
+                             subject=subject, 
+                             questions=questions)
+    
+    return render_template('parse_pdf_confirm.html', subject=subject)
+
+@app.route('/admin/save_parsed_questions', methods=['POST'])
+def admin_save_parsed_questions():
+    """Save parsed questions as tests"""
+    if not session.get('logged_in', False) or not session.get('is_admin', False):
+        return redirect(url_for('login'))
+    
+    questions = session.get('parsed_questions', [])
+    subject_id = session.get('subject_id')
+    
+    if not questions or not subject_id:
+        flash("Savollar ma'lumotlari topilmadi!", 'error')
+        return redirect(url_for('admin_subjects'))
+    
+    try:
+        saved_count = 0
+        for i, q_data in enumerate(questions):
+            # Get correct answer from form
+            correct_key = request.form.get(f'correct_answer_{i}')
+            
+            if correct_key and q_data['options']:
+                # Create test with required fields
+                new_test = Test(
+                    title=f"Savol {i+1}",
+                    subject_id=subject_id,
+                    test_type='daily',
+                    test_date=date.today(),
+                    start_time=datetime.now().time(),
+                    end_time=(datetime.now() + timedelta(hours=1)).time(),
+                    duration_minutes=60,
+                    is_active=True
+                )
+                db.session.add(new_test)
+                db.session.flush()  # Get the test ID
+                
+                # Create question with options in existing structure
+                # Map options to A, B, C, D format
+                option_map = {}
+                for opt_data in q_data['options']:
+                    key = opt_data['key'].upper()
+                    if key in ['A', 'B', 'C', 'D']:
+                        option_map[key] = opt_data['text']
+                
+                # Ensure we have all 4 options
+                option_a = option_map.get('A', '')
+                option_b = option_map.get('B', '')
+                option_c = option_map.get('C', '')
+                option_d = option_map.get('D', '')
+                
+                if option_a and option_b and option_c and option_d:
+                    question = Question(
+                        text=q_data['question'],
+                        option_a=option_a,
+                        option_b=option_b,
+                        option_c=option_c,
+                        option_d=option_d,
+                        correct_answer=correct_key.upper(),
+                        test_id=new_test.id
+                    )
+                    db.session.add(question)
+                    saved_count += 1
+        
+        db.session.commit()
+        
+        # Clear session
+        session.pop('parsed_questions', None)
+        session.pop('subject_id', None)
+        
+        flash(f"{saved_count} ta test muvaffaqiyatli saqlandi!", 'success')
+        return redirect(url_for('admin_subjects'))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Testlarni saqlashda xatolik: {str(e)}", 'error')
+        return redirect(url_for('admin_subjects'))
 
 @app.route('/admin/delete_subject/<int:subject_id>', methods=['POST'])
 def admin_delete_subject(subject_id):
@@ -1064,6 +1312,28 @@ def admin_add_test():
         flash("Tugash vaqti noto'g'ri formatda! HH:MM formatida kiriting.", 'error')
         return redirect(url_for('admin_tests'))
     
+    # Handle PDF file upload
+    pdf_file = request.files.get('pdf_file')
+    pdf_file_path = None
+    pdf_filename = None
+    
+    if pdf_file and pdf_file.filename != '':
+        if allowed_file(pdf_file.filename):
+            filename = secure_filename(pdf_file.filename)
+            # Add timestamp to make filename unique
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"{timestamp}_{filename}"
+            
+            upload_dir = ensure_upload_directory()
+            file_path = os.path.join(upload_dir, filename)
+            pdf_file.save(file_path)
+            
+            pdf_file_path = file_path
+            pdf_filename = filename
+        else:
+            flash("Faqat PDF fayllariga ruxsat beriladi!", 'error')
+            return redirect(url_for('admin_tests'))
+    
     # Create new test
     new_test = Test(
         title=title,
@@ -1072,7 +1342,9 @@ def admin_add_test():
         test_date=test_date,
         start_time=start_time,
         end_time=end_time,
-        duration_minutes=duration_minutes
+        duration_minutes=duration_minutes,
+        pdf_file_path=pdf_file_path,
+        pdf_filename=pdf_filename
     )
     db.session.add(new_test)
     db.session.commit()
@@ -1382,71 +1654,77 @@ def tests():
     if not session.get('logged_in', False):
         return redirect(url_for('login'))
     
-    # Check if subjects exist before creating test schedule
-    subjects_count = Subject.query.count()
-    if subjects_count > 0:
-        # Ensure test schedule is created and only 1 test per day
-        create_test_schedule()
-    
-    # Get 7-day test schedule
-    today = datetime.now().date()
-    week_start = today - timedelta(days=today.weekday())
-    week_end = week_start + timedelta(days=6)
-    
-    weekly_tests = Test.query.filter(
-        Test.test_date >= week_start,
-        Test.test_date <= week_end
-    ).order_by(Test.test_date).all()
-    
-    # Check user registrations
-    user_registrations = {reg.test_id: reg for reg in TestRegistration.query.filter_by(user_id=session['user_id']).all()}
-    user_results = {result.test_id: result for result in TestResult.query.filter_by(user_id=session['user_id']).all()}
-    
-    # Group tests by date for schedule table
-    schedule_data = {}
-    for test in weekly_tests:
-        date_str = test.test_date.strftime('%d.%m.%Y')
-        day_name = test.test_date.strftime('%A')
-        
-        if date_str not in schedule_data:
-            schedule_data[date_str] = {
-                'date': test.test_date,
-                'day_name': day_name,
-                'tests': []
-            }
-        
-        # Check availability
-        now = datetime.now()
-        test_start = datetime.combine(test.test_date, test.start_time)
-        test_end = datetime.combine(test.test_date, test.end_time)
-        
-        is_available = test_start <= now <= test_end
-        is_registered = test.id in user_registrations
-        has_result = test.id in user_results
-        
-        schedule_data[date_str]['tests'].append({
-            'test': test,
-            'is_available': is_available,
-            'is_registered': is_registered,
-            'has_result': has_result,
-            'registration': user_registrations.get(test.id),
-            'result': user_results.get(test.id)
-        })
-    
-    # Sort by date
-    sorted_dates = sorted(schedule_data.keys())
-    
-    # Get user for template
     user = User.query.get(session['user_id'])
     
-    return render_template('tests_clean.html', 
-                         schedule_data=schedule_data,
-                         sorted_dates=sorted_dates,
-                         user_registrations=user_registrations,
-                         user_results=user_results,
-                         today=today,
-                         subjects_count=subjects_count,
-                         user=user)
+    # Get current week dates
+    today = datetime.now().date()
+    week_start = today - timedelta(days=today.weekday())  # Monday
+    week_days = []
+    
+    day_names = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba']
+    
+    for i in range(7):
+        current_date = week_start + timedelta(days=i)
+        week_days.append({
+            'day_number': i + 1,
+            'day_name': day_names[i],
+            'date': current_date,
+            'date_str': current_date.strftime('%d.%m.%Y')
+        })
+    
+    # Create weekly schedule if needed
+    create_weekly_schedule_for_group(user.group_id, week_start)
+    
+    # Get weekly test schedules for user's group
+    weekly_schedules = WeeklyTestSchedule.query.filter_by(
+        group_id=user.group_id,
+        week_start_date=week_start
+    ).order_by(WeeklyTestSchedule.day_number).all()
+    
+    # Check user results
+    user_results = {result.test_id: result for result in TestResult.query.filter_by(user_id=user.id).all()}
+    
+    # Create schedule data for template
+    schedule_data = []
+    for day_data in week_days:
+        day_schedule = {
+            'day_number': day_data['day_number'],
+            'day_name': day_data['day_name'],
+            'date': day_data['date'],
+            'date_str': day_data['date_str'],
+            'test': None,
+            'status': 'Bajarilmagan',
+            'result': None,
+            'is_available': False
+        }
+        
+        # Find test for this day
+        day_schedule_item = next((ws for ws in weekly_schedules if ws.day_number == day_data['day_number']), None)
+        
+        if day_schedule_item:
+            test = day_schedule_item.test
+            day_schedule['test'] = test
+            
+            # Check if test is available (today and within time)
+            if day_data['date'] == today:
+                now = datetime.now()
+                test_start = datetime.combine(test.test_date, test.start_time)
+                test_end = datetime.combine(test.test_date, test.end_time)
+                day_schedule['is_available'] = test_start <= now <= test_end
+            
+            # Check completion status
+            if test.id in user_results:
+                result = user_results[test.id]
+                day_schedule['result'] = result
+                day_schedule['status'] = f'Bajarilgan ({result.percentage}%)'
+            elif day_schedule_item.is_completed:
+                day_schedule['status'] = 'Bajarilgan'
+            elif day_data['date'] < today:
+                day_schedule['status'] = 'O\'tkazib yuborilgan'
+        
+        schedule_data.append(day_schedule)
+    
+    return render_template('weekly_tests.html', schedule_data=schedule_data, week_start=week_start, timedelta=timedelta, today=today)
 
 @app.route('/register_for_test/<int:test_id>', methods=['POST'])
 def register_for_test(test_id):
@@ -2216,12 +2494,35 @@ def api_add_topic():
         if not subject:
             return jsonify({'error': 'Fan topilmadi'}), 404
         
+        # Handle PDF file upload
+        pdf_file = request.files.get('pdf_file')
+        pdf_file_path = None
+        pdf_filename = None
+        
+        if pdf_file and pdf_file.filename != '':
+            if allowed_file(pdf_file.filename):
+                filename = secure_filename(pdf_file.filename)
+                # Add timestamp to make filename unique
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = f"{timestamp}_{filename}"
+                
+                upload_dir = ensure_upload_directory()
+                file_path = os.path.join(upload_dir, filename)
+                pdf_file.save(file_path)
+                
+                pdf_file_path = file_path
+                pdf_filename = filename
+            else:
+                return jsonify({'error': 'Faqat PDF fayllariga ruxsat beriladi!'}), 400
+        
         # Create new topic
         topic = Topic(
             title=title,
             content=content,
             video_url=video_url if video_url else None,
-            subject_id=subject_id
+            subject_id=subject_id,
+            pdf_file_path=pdf_file_path,
+            pdf_filename=pdf_filename
         )
         db.session.add(topic)
         db.session.commit()
@@ -2411,28 +2712,32 @@ def api_edit_topic():
         # Handle PDF file
         if remove_pdf:
             # Remove existing PDF
-            if topic.pdf_file:
+            if topic.pdf_file_path and os.path.exists(topic.pdf_file_path):
                 try:
-                    os.remove(os.path.join(app.config['UPLOAD_FOLDER'], topic.pdf_file))
+                    os.remove(topic.pdf_file_path)
                 except:
                     pass
-                topic.pdf_file = None
-        elif pdf_file:
+            topic.pdf_file_path = None
+            topic.pdf_filename = None
+        elif pdf_file and pdf_file.filename != '':
             # Upload new PDF
-            if pdf_file.filename.endswith('.pdf'):
+            if allowed_file(pdf_file.filename):
+                # Delete old PDF if exists
+                if topic.pdf_file_path and os.path.exists(topic.pdf_file_path):
+                    os.remove(topic.pdf_file_path)
+                
                 filename = secure_filename(pdf_file.filename)
-                pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                pdf_file.save(pdf_path)
+                # Add timestamp to make filename unique
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = f"{timestamp}_{filename}"
                 
-                # Remove old PDF if exists
-                if topic.pdf_file:
-                    try:
-                        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], topic.pdf_file))
-                    except:
-                        pass
+                upload_dir = ensure_upload_directory()
+                file_path = os.path.join(upload_dir, filename)
+                pdf_file.save(file_path)
                 
-                topic.pdf_file = filename
-        
+                topic.pdf_file_path = file_path
+                topic.pdf_filename = filename
+                    
         db.session.commit()
         
         return jsonify({

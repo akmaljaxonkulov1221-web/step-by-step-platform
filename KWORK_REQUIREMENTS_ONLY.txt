@@ -1,0 +1,15 @@
+To fulfill your order, I need some instructions from you! Please describe your desired outcome and indicate any preferences you may have. This may include fonts, colors, target audience, etc. Also, please don't forget to send any files and account details necessary for the order.
+
+For this education platform project, please provide:
+1. Your preferred color scheme and branding guidelines
+2. Any specific fonts you want to use
+3. Target audience details (students age group, educational level)
+4. Current system/database information if migration needed
+5. Hosting environment preferences
+6. Any specific features you want to prioritize
+7. Timeline requirements
+8. Budget constraints
+9. User accounts and access credentials if needed
+10. Any existing files or data to be imported
+
+Please attach all necessary files including logos, sample data, or any documentation that will help me understand your requirements better.

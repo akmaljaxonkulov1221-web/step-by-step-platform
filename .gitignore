@@ -51,3 +51,20 @@ Thumbs.db
 
 # Render
 .render/
+
+# PDF Uploads (keep structure but ignore files)
+uploads/pdfs/*.pdf
+uploads/pdfs/*.PDF
+!uploads/pdfs/.gitkeep
+
+# Test files
+test_*.py
+*_test.py
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Node modules (if any)
+node_modules/

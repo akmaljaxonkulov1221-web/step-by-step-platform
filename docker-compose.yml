@@ -7,7 +7,9 @@ services:
       - "5000:5000"
     environment:
       - FLASK_ENV=production
-      - SECRET_KEY=your-secret-key-here
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///education_complete.db}
+      - FLASK_APP=app.py
     volumes:
       - ./uploads:/app/uploads
       - ./education_complete.db:/app/education_complete.db
@@ -29,3 +31,5 @@ services:
     depends_on:
       - education-platform
     restart: unless-stopped
+    profiles:
+      - production

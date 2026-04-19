@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}O'quvchilar boshqaruvi{% endblock %}
+{% block title %}O'quvchilar boshqaruvi - Ta'lim Platformasi{% endblock %}
 
 {% block page_title %}O'quvchilar boshqaruvi{% endblock %}
 
@@ -8,15 +8,28 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5><i class="fas fa-users"></i> O'quvchilar ro'yxati</h5>
+                <div class="d-flex gap-2">
+                    <span class="badge bg-primary">Jami: {{ students|length }}</span>
+                    <span class="badge bg-success">Faol: {{ students|selectattr('is_active', 'equalto', true)|list|length }}</span>
+                </div>
             </div>
             <div class="card-body">
-                <!-- Add Student Form -->
+                <!-- Search and Actions -->
                 <div class="row mb-4">
-                    <div class="col-12">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control" id="searchStudent" placeholder="O'quvchini qidirish...">
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-end">
                         <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#addStudentForm">
                             <i class="fas fa-plus"></i> Yangi o'quvchi qo'shish
+                        </button>
+                        <button class="btn btn-outline-success ms-2" onclick="exportStudents()">
+                            <i class="fas fa-download"></i> Export
                         </button>
                     </div>
                 </div>
@@ -74,8 +87,10 @@
                                 <th>F.I.Sh</th>
                                 <th>Login</th>
                                 <th>Guruh</th>
+                                <th>Telefon</th>
                                 <th>Testlar soni</th>
                                 <th>O'rtacha ball</th>
+                                <th>Status</th>
                                 <th>Amallar</th>
                             </tr>
                         </thead>
@@ -83,17 +98,51 @@
                             {% for student in students %}
                             <tr>
                                 <td>{{ loop.index }}</td>
-                                <td>{{ student.first_name }} {{ student.last_name }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                            {{ student.first_name[0] }}{{ student.last_name[0] }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold">{{ student.first_name }} {{ student.last_name }}</div>
+                                            <small class="text-muted">{{ student.username }}</small>
+                                        </div>
+                                    </div>
+                                </td>
                                 <td>{{ student.username }}</td>
-                                <td>{{ student.group.name }}</td>
-                                <td>{{ student.test_results|length }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ student.group.name }}</span>
+                                </td>
+                                <td>
+                                    {% if student.phone %}
+                                        {{ student.phone }}
+                                    {% else %}
+                                        <span class="text-muted">Mavjud emas</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ student.test_results|length }}</span>
+                                </td>
                                 <td>
                                     {% if student.test_results %}
                                         {% set total = student.test_results|sum(attribute='score') %}
                                         {% set count = student.test_results|sum(attribute='total_questions') %}
-                                        {{ "%.1f"|format((total / count * 100)) }}%
+                                        {% set percentage = (total / count * 100) %}
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar {% if percentage >= 80 %}bg-success{% elif percentage >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                 role="progressbar" data-percentage="{{ percentage }}">
+                                                {{ "%.1f"|format(percentage) }}%
+                                            </div>
+                                        </div>
                                     {% else %}
-                                        -
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if student.is_active %}
+                                        <span class="badge bg-success">Faol</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Nofaol</span>
                                     {% endif %}
                                 </td>
                                 <td>
@@ -173,6 +222,13 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.clear();
         sessionStorage.clear();
     }
+    
+    // Set progress bar widths dynamically
+    var progressBars = document.querySelectorAll('.progress-bar[data-percentage]');
+    progressBars.forEach(function(bar) {
+        var percentage = bar.getAttribute('data-percentage');
+        bar.style.width = percentage + '%';
+    });
 });
 
 // Handle modal events
@@ -198,6 +254,52 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    var searchInput = document.getElementById('searchStudent');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            var searchTerm = e.target.value.toLowerCase();
+            var rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(function(row) {
+                var text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+
+// Export functionality
+function exportStudents() {
+    // Simple CSV export
+    var table = document.querySelector('table');
+    var rows = table.querySelectorAll('tr');
+    var csv = [];
+    
+    rows.forEach(function(row) {
+        var rowData = [];
+        var cells = row.querySelectorAll('td, th');
+        cells.forEach(function(cell) {
+            rowData.push(cell.textContent.trim());
+        });
+        csv.push(rowData.join(','));
+    });
+    
+    var csvContent = csv.join('\n');
+    var blob = new Blob([csvContent], { type: 'text/csv' });
+    var url = window.URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'students_export.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
 </script>
 
 {% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Savollarni tasdiqlash{% endblock %}
+
+{% block page_title %}Savollarni tasdiqlash{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-check-circle"></i> Savollarni tasdiqlash - {{ subject.name }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>{{ questions|length }} ta savol topildi.</strong><br>
+                        Har bir savol uchun to'g'ri javobni belgilang va saqlash tugmasini bosing.
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('admin_save_parsed_questions') }}">
+                        {% for question in questions %}
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6>Savol {{ loop.index }}</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <strong>{{ question.question }}</strong>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Variantlar:</label>
+                                    {% for option in question.options %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" 
+                                               name="correct_answer_{{ loop.index0 }}" 
+                                               id="correct_{{ loop.index0 }}_{{ option.key }}" 
+                                               value="{{ option.key }}"
+                                               {% if loop.first %}checked{% endif %}>
+                                        <label class="form-check-label" 
+                                               for="correct_{{ loop.index0 }}_{{ option.key }}">
+                                            <strong>{{ option.key }})</strong> {{ option.text }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Barcha savollarni saqlash
+                            </button>
+                            <a href="{{ url_for('admin_subjects') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Bekor qilish
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

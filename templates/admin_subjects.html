@@ -23,6 +23,7 @@
                             <tr>
                                 <th>Fan nomi</th>
                                 <th>Tavsif</th>
+                                <th>PDF fayl</th>
                                 <th>Mavzular soni</th>
                                 <th>Testlar soni</th>
                                 <th>Amallar</th>
@@ -33,6 +34,16 @@
                             <tr>
                                 <td><strong>{{ subject.name }}</strong></td>
                                 <td>{{ subject.description[:100] }}{% if subject.description|length > 100 %}...{% endif %}</td>
+                                <td>
+                                    {% if subject.pdf_filename %}
+                                        <a href="{{ url_for('download_pdf', filename=subject.pdf_filename) }}" 
+                                           target="_blank" class="btn btn-sm btn-outline-primary" title="PDF ni ko'rish">
+                                            <i class="fas fa-file-pdf"></i> {{ subject.pdf_filename[:15] }}...
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">PDF yo'q</span>
+                                    {% endif %}
+                                </td>
                                 <td>{{ subject.topics|length }}</td>
                                 <td>{{ subject.tests|length }}</td>
                                 <td>
@@ -40,9 +51,16 @@
                                         <a href="{{ url_for('admin_edit_subject', subject_id=subject.id) }}" class="btn btn-outline-warning">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <a href="{{ url_for('admin_delete_subject', subject_id=subject.id) }}" class="btn btn-outline-danger" onclick="return confirm('Rostdan ham ushbu fanni o\'chirmoqchimisiz?')">
-                                            <i class="fas fa-trash"></i>
+                                        {% if subject.pdf_filename %}
+                                        <a href="{{ url_for('admin_parse_pdf', subject_id=subject.id) }}" class="btn btn-outline-info" title="PDF dan test yaratish">
+                                            <i class="fas fa-file-pdf"></i>
                                         </a>
+                                        {% endif %}
+                                        <form method="POST" action="{{ url_for('admin_delete_subject', subject_id=subject.id) }}" style="display: inline;">
+                                            <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Rostdan ham ushbu fanni o\'chirmoqchimisiz?')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
@@ -70,7 +88,7 @@
                 <h5 class="modal-title">Yangi fan qo'shish</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{{ url_for('admin_add_subject') }}">
+            <form method="POST" action="{{ url_for('admin_add_subject') }}" enctype="multipart/form-data">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="name" class="form-label">Fan nomi</label>
@@ -92,6 +110,12 @@
                         <label for="end_time" class="form-label">Tugash vaqti</label>
                         <input type="time" class="form-control" id="end_time" name="end_time">
                         <div class="form-text">Fan tugash vaqti (ixtiyoriy)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="pdf_file" class="form-label">PDF fayl</label>
+                        <input type="file" class="form-control" id="pdf_file" name="pdf_file" accept=".pdf">
+                        <div class="form-text">Fan uchun PDF darslik yuklang (ixtiyoriy)</div>
                     </div>
                 </div>
                 <div class="modal-footer">

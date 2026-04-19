@@ -1,0 +1,1 @@
+I will build a complete education platform with login system, student dashboard, and admin panel. Features include user authentication, student management, test creation, certificate system, and data analytics. Built with Flask, Bootstrap 5, and MySQL/PostgreSQL. Ready for immediate use with full documentation and 30 days support.
