@@ -92,8 +92,83 @@ def init_database():
             # Create all tables
             db.create_all()
             print("Database initialized successfully")
+            
+            # Check and add missing PDF columns dynamically
+            check_and_add_pdf_columns()
+            
     except Exception as e:
         print(f"Database initialization error: {e}")
+
+def check_and_add_pdf_columns():
+    """Check and add PDF columns if they don't exist"""
+    try:
+        from sqlalchemy import text, inspect
+        
+        inspector = inspect(db.engine)
+        table_names = inspector.get_table_names()
+        
+        # Check test table columns
+        if 'test' in table_names:
+            test_columns = [col['name'] for col in inspector.get_columns('test')]
+            
+            # Add pdf_file_path column if missing
+            if 'pdf_file_path' not in test_columns:
+                print("Adding pdf_file_path column to test table...")
+                with db.engine.connect() as conn:
+                    conn.execute(text('ALTER TABLE test ADD COLUMN pdf_file_path VARCHAR(500)'))
+                    conn.commit()
+                print("pdf_file_path column added successfully")
+            
+            # Add pdf_filename column if missing
+            if 'pdf_filename' not in test_columns:
+                print("Adding pdf_filename column to test table...")
+                with db.engine.connect() as conn:
+                    conn.execute(text('ALTER TABLE test ADD COLUMN pdf_filename VARCHAR(255)'))
+                    conn.commit()
+                print("pdf_filename column added successfully")
+        
+        # Check topic table columns
+        if 'topic' in table_names:
+            topic_columns = [col['name'] for col in inspector.get_columns('topic')]
+            
+            # Add pdf_file_path column if missing
+            if 'pdf_file_path' not in topic_columns:
+                print("Adding pdf_file_path column to topic table...")
+                with db.engine.connect() as conn:
+                    conn.execute(text('ALTER TABLE topic ADD COLUMN pdf_file_path VARCHAR(500)'))
+                    conn.commit()
+                print("pdf_file_path column added successfully")
+            
+            # Add pdf_filename column if missing
+            if 'pdf_filename' not in topic_columns:
+                print("Adding pdf_filename column to topic table...")
+                with db.engine.connect() as conn:
+                    conn.execute(text('ALTER TABLE topic ADD COLUMN pdf_filename VARCHAR(255)'))
+                    conn.commit()
+                print("pdf_filename column added successfully")
+        
+        # Check subject table columns
+        if 'subject' in table_names:
+            subject_columns = [col['name'] for col in inspector.get_columns('subject')]
+            
+            # Add pdf_file_path column if missing
+            if 'pdf_file_path' not in subject_columns:
+                print("Adding pdf_file_path column to subject table...")
+                with db.engine.connect() as conn:
+                    conn.execute(text('ALTER TABLE subject ADD COLUMN pdf_file_path VARCHAR(500)'))
+                    conn.commit()
+                print("pdf_file_path column added successfully")
+            
+            # Add pdf_filename column if missing
+            if 'pdf_filename' not in subject_columns:
+                print("Adding pdf_filename column to subject table...")
+                with db.engine.connect() as conn:
+                    conn.execute(text('ALTER TABLE subject ADD COLUMN pdf_filename VARCHAR(255)'))
+                    conn.commit()
+                print("pdf_filename column added successfully")
+                
+    except Exception as e:
+        print(f"Error checking/adding PDF columns: {e}")
 
 # Initialize database on startup
 init_database()
