@@ -7,9 +7,14 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from app import app, db
-from datetime import datetime
-from sqlalchemy import text as db_text
+try:
+    from app import app, db
+    from datetime import datetime
+    from sqlalchemy import text as db_text
+    APP_AVAILABLE = True
+except ImportError as e:
+    print(f"Error importing app: {e}")
+    APP_AVAILABLE = False
 
 def migrate_database():
     """Add new columns and tables for PDF upload and weekly schedule features"""
@@ -126,6 +131,20 @@ def verify_migration():
         except Exception as e:
             print(f"Error verifying migration: {e}")
 
+def main():
+    """Run migration and verification"""
+    if not APP_AVAILABLE:
+        print("Cannot run migration - app not available")
+        return False
+    
+    try:
+        migrate_database()
+        verify_migration()
+        return True
+    except Exception as e:
+        print(f"Migration failed: {e}")
+        return False
+
 if __name__ == "__main__":
-    migrate_database()
-    verify_migration()
+    success = main()
+    sys.exit(0 if success else 1)

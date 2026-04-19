@@ -19,6 +19,14 @@ except ImportError:
     CHATGPT_AVAILABLE = False
     print("ChatGPT integration not available, using fallback responses")
 
+# PDF Parser Integration
+try:
+    from pdf_parser import PDFQuestionExtractor
+    PDF_PARSER_AVAILABLE = True
+except ImportError:
+    PDF_PARSER_AVAILABLE = False
+    print("PDF parser not available, using fallback responses")
+
 def check_password_hash(pw_hash, password):
     """Check if password matches hash"""
     from werkzeug.security import check_password_hash as werkzeug_check
@@ -1027,11 +1035,17 @@ def admin_parse_pdf(subject_id):
         return redirect(url_for('admin_subjects'))
     
     if request.method == 'POST':
-        # Import PDF parser
-        from pdf_parser import PDFQuestionExtractor
-        
-        extractor = PDFQuestionExtractor()
-        questions = extractor.parse_pdf_file(subject.pdf_file_path)
+        # Import PDF parser with error handling
+        try:
+            from pdf_parser import PDFQuestionExtractor
+            extractor = PDFQuestionExtractor()
+            questions = extractor.parse_pdf_file(subject.pdf_file_path)
+        except ImportError:
+            flash("PDF parser mavjud emas! Iltimos, administrator bilan bog'laning.", 'error')
+            return redirect(url_for('admin_subjects'))
+        except Exception as e:
+            flash(f"PDF ni parse qilishda xatolik: {str(e)}", 'error')
+            return redirect(url_for('admin_subjects'))
         
         if not questions:
             flash("PDF dan savollarni ajratib bo'lmadi!", 'error')
