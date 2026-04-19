@@ -226,21 +226,22 @@ class AIChat(db.Model):
     topic = db.relationship('Topic', backref=db.backref('ai_chats', lazy=True))
 
 
-class Certificate(db.Model):
-    __tablename__ = 'certificate'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    certificate_number = db.Column(db.String(50), unique=True, nullable=False)
-    title = db.Column(db.String(200), nullable=False)
-    description = db.Column(db.Text)
-    issue_date = db.Column(db.DateTime, nullable=False)
-    expiry_date = db.Column(db.DateTime)
-    file_path = db.Column(db.String(500))
-    is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, nullable=False)
-    
-    user = db.relationship('User', backref=db.backref('certificates', lazy=True, cascade='all, delete-orphan'))
+# Certificate model removed temporarily to fix database schema issues
+# class Certificate(db.Model):
+#     __tablename__ = 'certificate'
+#     
+#     id = db.Column(db.Integer, primary_key=True)
+#     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+#     certificate_number = db.Column(db.String(50), unique=True, nullable=False)
+#     title = db.Column(db.String(200), nullable=False)
+#     description = db.Column(db.Text)
+#     issue_date = db.Column(db.DateTime, nullable=False)
+#     expiry_date = db.Column(db.DateTime)
+#     file_path = db.Column(db.String(500))
+#     is_active = db.Column(db.Boolean, default=True)
+#     created_at = db.Column(db.DateTime, nullable=False)
+#     
+#     user = db.relationship('User', backref=db.backref('certificates', lazy=True, cascade='all, delete-orphan'))
 
 
 class Test(db.Model):
@@ -713,8 +714,8 @@ def admin_delete_student(student_id):
         # 2. Delete test results
         TestResult.query.filter_by(user_id=student_id).delete()
         
-        # 3. Delete certificates
-        Certificate.query.filter_by(user_id=student_id).delete()
+        # 3. Delete certificates (disabled temporarily)
+        # Certificate.query.filter_by(user_id=student_id).delete()
         
         # 4. Delete difficult topics
         DifficultTopic.query.filter_by(user_id=student_id).delete()
@@ -761,7 +762,8 @@ def admin_certificates():
     if not session.get('logged_in', False) or not session.get('is_admin', False):
         return redirect(url_for('login'))
     
-    certificates = Certificate.query.all()
+    # Certificate functionality disabled temporarily
+    certificates = []
     students = User.query.filter_by(is_admin=False, is_group_leader=False).all()
     
     return render_template('admin_certificates.html', certificates=certificates, students=students)
@@ -772,59 +774,9 @@ def admin_upload_certificate():
     if not session.get('logged_in', False) or not session.get('is_admin', False):
         return redirect(url_for('login'))
     
-    try:
-        user_id = request.form.get('user_id')
-        certificate_number = request.form.get('certificate_number')
-        title = request.form.get('title')
-        description = request.form.get('description')
-        issue_date_str = request.form.get('issue_date')
-        expiry_date_str = request.form.get('expiry_date')
-        
-        # Handle file upload
-        file = request.files.get('certificate_file')
-        file_path = None
-        
-        if file and file.filename:
-            # Create secure filename
-            filename = secure_filename(file.filename)
-            # Add timestamp to make it unique
-            import time
-            timestamp = int(time.time())
-            filename = f"{timestamp}_{filename}"
-            
-            # Save file
-            upload_folder = os.path.join(app.root_path, 'uploads', 'certificates')
-            os.makedirs(upload_folder, exist_ok=True)
-            file_path = os.path.join('uploads', 'certificates', filename)
-            file.save(os.path.join(app.root_path, file_path))
-        
-        # Parse dates
-        issue_date = datetime.strptime(issue_date_str, '%Y-%m-%d') if issue_date_str else datetime.now()
-        expiry_date = datetime.strptime(expiry_date_str, '%Y-%m-%d') if expiry_date_str else None
-        
-        # Create certificate
-        certificate = Certificate(
-            user_id=user_id,
-            certificate_number=certificate_number,
-            title=title,
-            description=description,
-            issue_date=issue_date,
-            expiry_date=expiry_date,
-            file_path=file_path,
-            created_at=datetime.now()
-        )
-        
-        db.session.add(certificate)
-        db.session.commit()
-        
-        flash('Sertifikat muvaffaqiyatli yuklandi!', 'success')
-        return redirect(url_for('admin_certificates'))
-        
-    except Exception as e:
-        db.session.rollback()
-        app.logger.error(f'Certificate upload error: {str(e)}')
-        flash('Sertifikat yuklashda xatolik yuz berdi!', 'error')
-        return redirect(url_for('admin_certificates'))
+    # Certificate functionality disabled temporarily
+    flash('Sertifikat funksiyasi vaqtincha o\'chirilgan!', 'info')
+    return redirect(url_for('admin_certificates'))
 
 
 @app.route('/admin/delete_certificate/<int:certificate_id>', methods=['POST'])
@@ -832,27 +784,9 @@ def admin_delete_certificate(certificate_id):
     if not session.get('logged_in', False) or not session.get('is_admin', False):
         return redirect(url_for('login'))
     
-    try:
-        certificate = Certificate.query.get_or_404(certificate_id)
-        
-        # Delete file if exists
-        if certificate.file_path:
-            file_full_path = os.path.join(app.root_path, certificate.file_path)
-            if os.path.exists(file_full_path):
-                os.remove(file_full_path)
-        
-        # Delete certificate
-        db.session.delete(certificate)
-        db.session.commit()
-        
-        flash('Sertifikat muvaffaqiyatli o\'chirildi!', 'success')
-        return redirect(url_for('admin_certificates'))
-        
-    except Exception as e:
-        db.session.rollback()
-        app.logger.error(f'Certificate deletion error: {str(e)}')
-        flash('Sertifikat o\'chirishda xatolik yuz berdi!', 'error')
-        return redirect(url_for('admin_certificates'))
+    # Certificate functionality disabled temporarily
+    flash('Sertifikat funksiyasi vaqtincha o\'chirilgan!', 'info')
+    return redirect(url_for('admin_certificates'))
 
 
 @app.route('/admin/groups')
@@ -1647,7 +1581,7 @@ def student_dashboard():
     
     user = User.query.get(session['user_id'])
     recent_results = TestResult.query.filter_by(user_id=user.id).order_by(TestResult.taken_at.desc()).limit(5).all()
-    certificates = Certificate.query.filter_by(user_id=user.id).all()
+    certificates = []  # Certificate functionality disabled temporarily
     difficult_topics = DifficultTopic.query.filter_by(user_id=user.id).all()
     
     # Calculate average percentage
