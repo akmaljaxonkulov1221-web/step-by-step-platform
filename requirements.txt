@@ -19,7 +19,7 @@ importlib-metadata==6.8.0
 # PDF parsing libraries
 PyPDF2==3.0.1
 pdfplumber==0.9.0
-PyMuPDF==1.23.8
+# PyMuPDF removed for faster deployment - can be added later if needed
 
 # Production dependencies
 whitenoise==6.6.0
