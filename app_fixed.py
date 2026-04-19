@@ -97,7 +97,7 @@ class Group(db.Model):
     leader_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     
     students = db.relationship('User', backref='group', lazy=True, foreign_keys='User.group_id')
-    leader = db.relationship('User', backref='led_group', lazy=True, foreign_keys=[leader_id])
+    leader = db.relationship('User', backref='led_group', lazy=True, foreign_keys=[Group.leader_id])
 
 class Subject(db.Model):
     __tablename__ = 'subject'
@@ -220,26 +220,25 @@ class AIChat(db.Model):
 # Initialize database
 def init_database():
     """Initialize database if it doesn't exist"""
-    with app.app_context():
-        try:
-            db.create_all()
-            print("Database initialized successfully")
+    try:
+        db.create_all()
+        print("Database initialized successfully")
+        
+        # Create admin user if not exists
+        admin = User.query.filter_by(username='admin').first()
+        if not admin:
+            admin = User(
+                username='admin',
+                email='admin@example.com',
+                role='admin'
+            )
+            admin.set_password('admin123')
+            db.session.add(admin)
+            db.session.commit()
+            print("Admin user created")
             
-            # Create admin user if not exists
-            admin = User.query.filter_by(username='admin').first()
-            if not admin:
-                admin = User(
-                    username='admin',
-                    email='admin@example.com',
-                    role='admin'
-                )
-                admin.set_password('admin123')
-                db.session.add(admin)
-                db.session.commit()
-                print("Admin user created")
-                
-        except Exception as e:
-            print(f"Database initialization error: {e}")
+    except Exception as e:
+        print(f"Database initialization error: {e}")
 
 # Initialize database on startup
 init_database()
@@ -247,8 +246,8 @@ init_database()
 # Routes
 @app.route('/')
 def index():
-    """Home page - redirect to login"""
-    return redirect(url_for('login'))
+    """Home page"""
+    return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
