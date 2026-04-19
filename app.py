@@ -100,57 +100,8 @@ def init_database():
         print(f"Database initialization error: {e}")
 
 def check_and_add_pdf_columns():
-    """Check and add PDF columns if they don't exist"""
-    try:
-        from sqlalchemy import text, inspect
-        
-        inspector = inspect(db.engine)
-        table_names = inspector.get_table_names()
-        
-        # Test table PDF columns removed - no longer needed
-        
-        # Check topic table columns
-        if 'topic' in table_names:
-            topic_columns = [col['name'] for col in inspector.get_columns('topic')]
-            
-            # Add pdf_file_path column if missing
-            if 'pdf_file_path' not in topic_columns:
-                print("Adding pdf_file_path column to topic table...")
-                with db.engine.connect() as conn:
-                    conn.execute(text('ALTER TABLE topic ADD COLUMN pdf_file_path VARCHAR(500)'))
-                    conn.commit()
-                print("pdf_file_path column added successfully")
-            
-            # Add pdf_filename column if missing
-            if 'pdf_filename' not in topic_columns:
-                print("Adding pdf_filename column to topic table...")
-                with db.engine.connect() as conn:
-                    conn.execute(text('ALTER TABLE topic ADD COLUMN pdf_filename VARCHAR(255)'))
-                    conn.commit()
-                print("pdf_filename column added successfully")
-        
-        # Check subject table columns
-        if 'subject' in table_names:
-            subject_columns = [col['name'] for col in inspector.get_columns('subject')]
-            
-            # Add pdf_file_path column if missing
-            if 'pdf_file_path' not in subject_columns:
-                print("Adding pdf_file_path column to subject table...")
-                with db.engine.connect() as conn:
-                    conn.execute(text('ALTER TABLE subject ADD COLUMN pdf_file_path VARCHAR(500)'))
-                    conn.commit()
-                print("pdf_file_path column added successfully")
-            
-            # Add pdf_filename column if missing
-            if 'pdf_filename' not in subject_columns:
-                print("Adding pdf_filename column to subject table...")
-                with db.engine.connect() as conn:
-                    conn.execute(text('ALTER TABLE subject ADD COLUMN pdf_filename VARCHAR(255)'))
-                    conn.commit()
-                print("pdf_filename column added successfully")
-                
-    except Exception as e:
-        print(f"Error checking/adding PDF columns: {e}")
+    """PDF columns removed from all models - no longer needed"""
+    print("All PDF fields removed from models - database schema fixed")
 
 # Initialize database on startup
 init_database()
@@ -241,9 +192,7 @@ class Subject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False, index=True)
     description = db.Column(db.Text)
-    pdf_file_path = db.Column(db.String(500))  # PDF fayl yo'li
-    pdf_filename = db.Column(db.String(255))   # PDF fayl nomi
-
+    # PDF fields removed temporarily to fix database schema issues
     
     # Relationships
     topics = db.relationship('Topic', backref='subject', lazy=True, cascade='all, delete-orphan')
@@ -258,8 +207,7 @@ class Topic(db.Model):
     content = db.Column(db.Text)
     video_url = db.Column(db.String(500))
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
-    pdf_file_path = db.Column(db.String(500))  # PDF fayl yo'li
-    pdf_filename = db.Column(db.String(255))   # PDF fayl nomi
+    # PDF fields removed temporarily to fix database schema issues
     
     # Relationships
     marked_by = db.relationship('DifficultTopic', backref='topic', lazy=True, cascade='all, delete-orphan')
