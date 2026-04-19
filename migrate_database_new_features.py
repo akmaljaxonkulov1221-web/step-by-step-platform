@@ -42,10 +42,11 @@ def migrate_database():
             # Add PDF columns to topic table
             print("Adding PDF columns to topic table...")
             with db.engine.connect() as conn:
-                conn.execute(db_text('ALTER TABLE topic ADD COLUMN pdf_file_path VARCHAR(500)'))
+                from sqlalchemy import text
+                conn.execute(text('ALTER TABLE topic ADD COLUMN pdf_file_path VARCHAR(500)'))
                 print("  - Added pdf_file_path column")
                 
-                conn.execute(db_text('ALTER TABLE topic ADD COLUMN pdf_filename VARCHAR(255)'))
+                conn.execute(text('ALTER TABLE topic ADD COLUMN pdf_filename VARCHAR(255)'))
                 print("  - Added pdf_filename column")
                 conn.commit()
             
@@ -59,10 +60,11 @@ def migrate_database():
             # Add PDF columns to test table
             print("Adding PDF columns to test table...")
             with db.engine.connect() as conn:
-                conn.execute(db_text('ALTER TABLE test ADD COLUMN pdf_file_path VARCHAR(500)'))
+                from sqlalchemy import text
+                conn.execute(text('ALTER TABLE test ADD COLUMN pdf_file_path VARCHAR(500)'))
                 print("  - Added pdf_file_path column")
                 
-                conn.execute(db_text('ALTER TABLE test ADD COLUMN pdf_filename VARCHAR(255)'))
+                conn.execute(text('ALTER TABLE test ADD COLUMN pdf_filename VARCHAR(255)'))
                 print("  - Added pdf_filename column")
                 conn.commit()
             
