@@ -40,8 +40,8 @@ import logging
 app = Flask(__name__)
 
 # CRITICAL: Set secret key for sessions to work
-app.config['SECRET_KEY'] = 'super-secret-key-for-sessions-to-work'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///education_complete.db'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'super-secret-key-for-sessions-to-work')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///education_complete.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # PDF upload configuration
@@ -50,6 +50,20 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 ALLOWED_EXTENSIONS = {'pdf'}
 
 db = SQLAlchemy(app)
+
+# Initialize database if it doesn't exist
+def init_database():
+    """Initialize database if it doesn't exist"""
+    try:
+        with app.app_context():
+            # Create all tables
+            db.create_all()
+            print("Database initialized successfully")
+    except Exception as e:
+        print(f"Database initialization error: {e}")
+
+# Initialize database on startup
+init_database()
 
 # Helper functions for file handling
 def allowed_file(filename):
