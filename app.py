@@ -107,25 +107,7 @@ def check_and_add_pdf_columns():
         inspector = inspect(db.engine)
         table_names = inspector.get_table_names()
         
-        # Check test table columns
-        if 'test' in table_names:
-            test_columns = [col['name'] for col in inspector.get_columns('test')]
-            
-            # Add pdf_file_path column if missing
-            if 'pdf_file_path' not in test_columns:
-                print("Adding pdf_file_path column to test table...")
-                with db.engine.connect() as conn:
-                    conn.execute(text('ALTER TABLE test ADD COLUMN pdf_file_path VARCHAR(500)'))
-                    conn.commit()
-                print("pdf_file_path column added successfully")
-            
-            # Add pdf_filename column if missing
-            if 'pdf_filename' not in test_columns:
-                print("Adding pdf_filename column to test table...")
-                with db.engine.connect() as conn:
-                    conn.execute(text('ALTER TABLE test ADD COLUMN pdf_filename VARCHAR(255)'))
-                    conn.commit()
-                print("pdf_filename column added successfully")
+        # Test table PDF columns removed - no longer needed
         
         # Check topic table columns
         if 'topic' in table_names:
@@ -325,8 +307,7 @@ class Test(db.Model):
     end_time = db.Column(db.Time, nullable=False)
     duration_minutes = db.Column(db.Integer, default=60)
     is_active = db.Column(db.Boolean, default=True)
-    pdf_file_path = db.Column(db.String(500))  # PDF fayl yo'li
-    pdf_filename = db.Column(db.String(255))   # PDF fayl nomi
+    # PDF fields removed temporarily to fix database schema issues
     
     # Relationships
     questions = db.relationship('Question', backref='test', lazy=True, cascade='all, delete-orphan')
