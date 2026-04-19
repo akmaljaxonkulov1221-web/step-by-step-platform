@@ -48,6 +48,13 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'super-secret-key-for-se
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///education_complete.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Validate environment
+logger.info("=== ENVIRONMENT VALIDATION ===")
+logger.info(f"SECRET_KEY configured: {bool(app.config.get('SECRET_KEY'))}")
+logger.info(f"DATABASE_URL configured: {bool(app.config.get('SQLALCHEMY_DATABASE_URI'))}")
+logger.info(f"Working directory: {os.getcwd()}")
+logger.info(f"Python version: {sys.version}")
+
 # Log configuration
 logger.info(f"Flask app starting with SECRET_KEY: {app.config['SECRET_KEY'][:10]}...")
 logger.info(f"Database URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
@@ -56,7 +63,19 @@ logger.info(f"Database URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
 @app.errorhandler(Exception)
 def handle_exception(e):
     logger.error(f"Unhandled exception: {str(e)}", exc_info=True)
-    return "Internal Server Error - Check logs for details", 500
+    return jsonify({'error': 'Internal Server Error', 'message': str(e)}), 500
+
+# Handle 404 errors
+@app.errorhandler(404)
+def handle_404(e):
+    logger.error(f"404 Not Found: {str(e)}")
+    return jsonify({'error': 'Not Found', 'message': str(e)}), 404
+
+# Handle 500 errors
+@app.errorhandler(500)
+def handle_500(e):
+    logger.error(f"500 Internal Server Error: {str(e)}", exc_info=True)
+    return jsonify({'error': 'Internal Server Error', 'message': str(e)}), 500
 
 # PDF upload configuration
 app.config['UPLOAD_FOLDER'] = 'uploads/pdfs'
